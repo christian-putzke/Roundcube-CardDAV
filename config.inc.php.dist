@@ -1,0 +1,7 @@
+<?php
+
+	// carddav database tables
+	$rcmail_config['db_table_carddav_server'] = 'carddav_server';
+	$rcmail_config['db_table_carddav_contacts'] = 'carddav_contacts';
+
+	
