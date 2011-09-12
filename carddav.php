@@ -4,6 +4,7 @@
  * include required carddav classes
  */
 require_once dirname(__FILE__).'/carddav_backend.php';
+require_once dirname(__FILE__).'/carddav_addressbook.php';
 
 
 /**
@@ -17,18 +18,22 @@ require_once dirname(__FILE__).'/carddav_backend.php';
  * @author Christian Putzke <cputzke@graviox.de>
  * @copyright Graviox Studios
  * @since 06.09.2011
- * @version 0.1
+ * @version 0.2
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  *
  */
 class carddav extends rcube_plugin
 {
 	public $task = 'settings|addressbook';
-
+	private $abook_id = 'cardDAV-Contacts';
+	private $abook_name = null;
+	
+	
 	public function init()
 	{
 		$rcmail = rcmail::get_instance();
 		$this->add_texts('localization/', true);
+		$this->abook_name = $this->gettext('addressbook_contacts');
 		
 		switch ($rcmail->task)
 		{
@@ -38,6 +43,11 @@ class carddav extends rcube_plugin
 				$this->register_action('plugin.carddav-server-save', array($this, 'carddav_server_save'));
 				$this->register_action('plugin.carddav-server-delete', array($this, 'carddav_server_delete'));
 				$this->include_script('carddav_settings.js');
+			break;
+			
+			case 'addressbook':
+				$this->add_hook('addressbooks_list', array($this, 'carddav_addressbook_sources'));
+				$this->add_hook('addressbook_get', array($this, 'get_carddav_addressbook'));
 			break;
 		}
 	}
@@ -65,6 +75,30 @@ class carddav extends rcube_plugin
 		}
 	
 		return $servers;
+	}
+	
+	public function get_carddav_addressbook($addressbook)
+	{
+		if ($addressbook['id'] === $this->abook_id)
+		{
+			$addressbook['instance'] = new carddav_addressbook($this->abook_name, $this->get_carddav_server());
+		}
+	
+		return $addressbook;
+	}
+	
+	public function carddav_addressbook_sources($addressbook)
+	{
+		$abook = new carddav_addressbook($this->abook_name);
+		
+		$addressbook['sources'][$this->abook_id] = array (
+			'id' => $this->abook_id,
+			'name' => $this->abook_name,
+			'readonly' => $abook->readonly,
+			'groups' => $abook->groups,
+		);
+		
+		return $addressbook;
 	}
 	
 	public function carddav_server()

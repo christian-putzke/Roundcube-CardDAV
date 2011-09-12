@@ -7,8 +7,8 @@ Features
 --------
 * add multiple cardDAV-Server for each user
 * cardDAV contacts will be synchronized automaticly (not implemented yet)
-* 2-way synchronization (no implemented yet)
-* cardDAV-Contacts are stored in the local database which provides great performance
+* 2-way synchronization (not implemented yet)
+* cardDAV-Contacts are stored in the local database which provides great performance (not implemented yet)
 
 
 Installation

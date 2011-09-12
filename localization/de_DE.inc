@@ -4,6 +4,7 @@ $labels = array();
 $labels['settings']					= 'CardDAV Einstellungen';
 $labels['settings_tab']				= 'CardDAV';
 $labels['settings_label']			= 'Label';
+$labels['addressbook_contacts']		= 'CardDAV-Kontakte';
 
 $messages = array();
 $messages['settings_empty_values']	= 'Bitte f&uuml;lle alle Felder aus';
