@@ -1,5 +1,8 @@
-change from 0.1 to 0.2
-- 
+changes from 0.1 to 0.2
+- cardDAV-Server settings via ajax [TODO]
+- initial cardDAV-Contacts sync (read only) [TODO]
+- manuel cardDAV-Contacts sync (read only) [TODO]
+- cardDAV-Backend Class update to v0.32
 
 release 0.1
 - save / delete cardDAV-Server settings

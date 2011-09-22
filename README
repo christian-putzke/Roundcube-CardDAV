@@ -19,8 +19,16 @@ Installation
 * login into your roundcube webmail and add your cardDAV-Server in the settings
 
 
+TODO
+----
+* manuell cardDAV-Contacts sync
+* automatic cardDAV-Cntacts sync
+* edit / add / delete vcards (2-way-sync)
+* cardDAV-Settings via ajax
+
+
 Contact
 -------
-* Author: Christian Putzke <cputzke@graviox.de>
+* Author: Christian Putzke <christian.putzke@graviox.de>
 * Report feature requests and bugs here: https://github.com/graviox/Roundcube-cardDAV/issues
 * Visit Graviox Studios: http://www.graviox.de/

@@ -4,9 +4,10 @@
  * Roundcube cardDAV addressbook extension
  * 
  * 
- * @author Christian Putzke <cputzke@graviox.de>
+ * @author Christian Putzke <christian.putzke@graviox.de>
  * @copyright Graviox Studios
  * @since 12.09.2011
+ * @link http://www.graviox.de
  * @version 0.2
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  *
@@ -24,7 +25,7 @@ class carddav_addressbook extends rcube_addressbook
 	private $servers;
 	private $cache;
 
-	public function __construct($name, $servers = null)
+	public function __construct($name = null, $servers = null)
 	{
 		$this->ready = true;
 		$this->name = $name;
@@ -52,7 +53,31 @@ class carddav_addressbook extends rcube_addressbook
 		$this->filter = null;
 	}
 
-	function list_groups($search = null)
+	public function carddav_addressbook_sync() 
+	{
+		if (!empty($this->servers))
+		{
+			foreach ($this->servers as $server)
+			{
+				$carddav_backend = new carddav_backend($server['url']);
+				$carddav_backend->set_auth($server['username'], $server['password']);
+				$elements = $carddav_backend->get(false);
+				
+				$xml = new SimpleXMLElement($elements);
+					
+				if (!empty($xml->element))
+				{
+					foreach ($xml->element as $element)
+					{
+						// sync contacts
+						// read only -> inserts / deletes from cardDAV-Server
+					}
+				}
+			}
+		}
+	}
+	
+	public function list_groups($search = null)
 	{
 		$groups = array();
 		

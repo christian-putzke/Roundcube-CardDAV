@@ -3,102 +3,130 @@
 /**
  * cardDAV-PHP
  *
- * simple carddav query
+ * simple cardDAV query
  * --------------------
- * $carddav = new carddav('https://davical.example.com/user/contacts/');
+ * $carddav = new carddav_backend('https://davical.example.com/user/contacts/');
  * $carddav->set_auth('username', 'password');
  * echo $carddav->get();
  * 
  * 
- * simple vcard query
+ * simple vCard query
  * ------------------
- * $carddav = new carddav('https://davical.example.com/user/contacts/');
+ * $carddav = new carddav_backend('https://davical.example.com/user/contacts/');
  * $carddav->set_auth('username', 'password');
  * echo $carddav->get_vcard('0126FFB4-2EB74D0A-302EA17F');
  *
  *
- * check carddav server connection
+ * check cardDAV-Server connection
  * -------------------------------
- * $carddav = new carddav('https://davical.example.com/user/contacts/');
+ * $carddav = new carddav_backend('https://davical.example.com/user/contacts/');
  * $carddav->set_auth('username', 'password');
  * var_dump($carddav->check_connection());
  *
  *
- * carddav delete query
+ * cardDAV delete query
  * --------------------
- * $carddav = new carddav('https://davical.example.com/user/contacts/');
+ * $carddav = new carddav_backend('https://davical.example.com/user/contacts/');
  * $carddav->set_auth('username', 'password');
  * $carddav->delete('0126FFB4-2EB74D0A-302EA17F');
  * 
  * 
- * carddav add query
+ * cardDAV add query
  * --------------------
  * $vcard = 'BEGIN:VCARD
  * VERSION:3.0
  * FN:Christian Putzke
  * N:Christian;Putzke;;;
- * EMAIL;TYPE=OTHER:cputzke@graviox.de
+ * EMAIL;TYPE=OTHER:christian.putzke@graviox.de
  * END:VCARD';
  * 
- * $carddav = new carddav('https://davical.example.com/user/contacts/');
+ * $carddav = new carddav_backend('https://davical.example.com/user/contacts/');
  * $carddav->set_auth('username', 'password');
  * $carddav->add($vcard);
  * 
  * 
- *  carddav update query
+ *  cardDAV update query
  * --------------------
  * $vcard = 'BEGIN:VCARD
  * VERSION:3.0
  * FN:Christian Putzke
  * N:Christian;Putzke;;;
- * EMAIL;TYPE=OTHER:cputzke@graviox.de
+ * EMAIL;TYPE=OTHER:christian.putzke@graviox.de
  * END:VCARD';
  * 
- * $carddav = new carddav('https://davical.example.com/user/contacts/');
+ * $carddav = new carddav_backend('https://davical.example.com/user/contacts/');
  * $carddav->set_auth('username', 'password');
  * $carddav->update($vcard, '0126FFB4-2EB74D0A-302EA17F');
  * 
  * 
  * 
- * @author Christian Putzke <cputzke@graviox.de>
+ * @author Christian Putzke <christian.putzke@graviox.de>
  * @copyright Graviox Studios
+ * @link http://www.graviox.de
  * @since 20.07.2011
- * @version 0.3
+ * @version 0.32
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  * 
  */
 
 class carddav_backend
 {
-	protected $url;
-	protected $auth = null;
-	protected $vcard_id_chars = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F');
-	protected $context = array();
-	
+	/**
+	 * cardDAV-Server url
+	 *
+	 * @var string
+	 */
+	protected $url = null;
 	
 	/**
-	 * set the cardDAV server url
+	 * base64 encoded authentification information
 	 * 
-	 * @param string $url cardDAV server url
+	 * @var string
+	 */
+	protected $auth = null;
+	
+	/**
+	 * characters used for vCard id generation
+	 * 
+	 * @var array
+	 */
+	protected $vcard_id_chars = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F');
+	
+	/**
+	 * http request context
+	 * 
+	 * @var array
+	 */
+	protected $context = array();
+	
+	/**
+	 * user agent displayed in http requests
+	 * 
+	 * @var string
+	 */
+	protected $user_agent = 'cardDAV-PHP/0.32';
+
+	/**
+	 * set the cardDAV-Server url
+	 * 
+	 * @param string $url cardDAV-Server url
 	 */
 	public function __construct($url)
 	{
 		$this->url = $url;
 	}
 	
-	
 	/**
 	 * set authentification information and base64 encode them
 	 * 
-	 * @param string $username cardDAV username
-	 * @param string $password cardDAV password
+	 * @param string $username cardDAV-Server username
+	 * @param string $password cardDAV-Server password
 	 */
 	public function set_auth($username, $password)
 	{
 		$this->auth = base64_encode($username.':'.$password);
 	}
 
-	
 	/**
 	 * set http request context
 	 *
@@ -109,7 +137,7 @@ class carddav_backend
 	private function set_context($method, $content = null, $content_type = null)
 	{
 		$context['http']['method'] = $method;
-		$context['http']['header'][] = 'User-Agent: cardDAV-PHP/0.3';
+		$context['http']['header'][] = 'User-Agent: '.$this->user_agent;
 		
 		if ($content !== null)
 		{
@@ -129,11 +157,10 @@ class carddav_backend
 		$this->context = stream_context_create($context);
 	}
 	
-	
 	/**
-	 * get xml-response from the cardDAV server
+	 * get xml-response from the cardDAV-Server
 	 * 
-	 * @param boolean $include_vcards include vcards in the response
+	 * @param boolean $include_vcards include vCards in the response (simplified only)
 	 * @param boolean $raw get response raw or simplified
 	 * @return string raw or simplified xml response
 	 */
@@ -152,7 +179,7 @@ class carddav_backend
 			$xml->endElement();
 		$xml->endDocument();
 		
-		$this->set_context('PROPFIND', $xml->outputMemory(), 'text/xml');
+		$this->set_context('REPORT', $xml->outputMemory(), 'text/xml');
 		$response = $this->query($this->url);
 		
 		if ($response === false || $raw === true)
@@ -165,9 +192,8 @@ class carddav_backend
 		}
 	}
 	
-	
 	/**
-	* get the response from the cardDAV server
+	* get the response from the cardDAV-Server
 	*
 	* @param resource $stream cardDAV stream resource
 	* @return string cardDAV xml-response
@@ -184,12 +210,11 @@ class carddav_backend
 	
 		return stream_get_contents($stream, $content_length);
 	}
-	
 
 	/**
-	 * get a vcard from the cardDAV server
+	 * get a vCard from the cardDAV-Server
 	 * 
-	 * @param string $id vcard id on the cardDAV server
+	 * @param string $id vCard id on the cardDAV-Server
 	 * @return string cardDAV xml-response
 	 */
 	public function get_vcard($vcard_id)
@@ -199,9 +224,8 @@ class carddav_backend
 		return $this->query($this->url.$vcard_id.'.vcf');
 	}
 	
-	
 	/**
-	* checks if the cardDAV Server is reachable
+	* checks if the cardDAV-Server is reachable
 	*
 	* @return boolean
 	*/
@@ -220,11 +244,10 @@ class carddav_backend
 		}
 	}
 	
-	
 	/**
-	 * deletes an entry from the cardDAV server
+	 * deletes an entry from the cardDAV-Server
 	 * 
-	 * @param string $id vcard id on the cardDAV server
+	 * @param string $id vCard id on the cardDAV-Server
 	 * @return string cardDAV xml-response
 	 */
 	public function delete($vcard_id)
@@ -232,13 +255,12 @@ class carddav_backend
 		$this->set_context('DELETE');
 		return $this->query($this->url.$vcard_id.'.vcf');
 	}
-
 	
 	/**
-	 * adds an entry to the cardDAV server
+	 * adds an entry to the cardDAV-Server
 	 *
-	 * @param string $vcard vcard
-	 * @param string $vcard_id vcard id on the cardDAV server
+	 * @param string $vcard vCard
+	 * @param string $vcard_id vCard id on the cardDAV-Server
 	 * @return string cardDAV xml-response
 	 */
 	public function add($vcard, $vcard_id = null)
@@ -253,12 +275,11 @@ class carddav_backend
 		return $this->query($this->url.$vcard_id.'.vcf');
 	}
 	
-	
 	/**
-	 * updates an entry to the cardDAV server
+	 * updates an entry to the cardDAV-Server
 	 *
-	 * @param string $vcard vcard
-	 * @param string $id vcard id on the cardDAV server
+	 * @param string $vcard vCard
+	 * @param string $id vCard id on the cardDAV-Server
 	 * @return string cardDAV xml-response
 	 */
 	public function update($vcard, $vcard_id)
@@ -266,7 +287,6 @@ class carddav_backend
 		$vcard_id = str_replace('.vcf', null, $vcard_id);
 		return $this->add($vcard, $vcard_id);
 	}
-	
 	
 	/**
 	 * simplify cardDAV xml-response
@@ -291,7 +311,9 @@ class carddav_backend
 				{
 					$id = str_replace($url['path'], null, $response->href);
 					
-					$simplified_xml->startElement('element');
+					if (!empty($id))
+					{
+						$simplified_xml->startElement('element');
 						$simplified_xml->writeElement('id', $id);
 						$simplified_xml->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
 						
@@ -299,8 +321,9 @@ class carddav_backend
 						{
 							$simplified_xml->writeElement('vcard', $this->get_vcard($id));
 						}
-						
-					$simplified_xml->endElement();
+							
+						$simplified_xml->endElement();
+					}
 				}
 			
 			$simplified_xml->endElement();
@@ -309,11 +332,10 @@ class carddav_backend
 		return $simplified_xml->outputMemory();
 	}
 	
-	
 	/**
-	 * quries the cardDAV server and returns the response
+	 * quries the cardDAV-Server and returns the response
 	 * 
-	 * @param string $url cardDAV server url
+	 * @param string $url cardDAV-Server url
 	 * @return string cardDAV xml-response
 	 */
 	private function query($url)
@@ -329,11 +351,10 @@ class carddav_backend
 		
 	}
 	
-	
 	/**
-	 * returns a valid and unused vcard id
+	 * returns a valid and unused vCard id
 	 * 
-	 * @return string valid vcard id
+	 * @return string valid vCard id
 	 */
 	private function generate_vcard_id()
 	{
@@ -351,7 +372,7 @@ class carddav_backend
 			}
 		}
 
-		$cardDAV = new carddav($this->url);
+		$cardDAV = new carddav_backend($this->url);
 		$cardDAV->auth = $this->auth;
 		$cardDAV->set_context('GET');
 		

@@ -8,7 +8,7 @@ if (window.rcmail)
 			html(rcmail.gettext('settings_tab', 'carddav')).appendTo(tab);
 		
 		rcmail.add_element(tab, 'tabs');
-		rcmail.addEventListener('plugin.carddav_server_check', carddav_server_check);
+		rcmail.addEventListener('plugin.carddav_server_message', carddav_server_message);
 		
 		rcmail.register_command('plugin.carddav-server-save', function()
 		{
@@ -23,20 +23,21 @@ if (window.rcmail)
 			}
 			else
 			{
-				rcmail.http_post('plugin.carddav-server-check', '_server_url=' + input_url.value + '&_username=' + input_username.value + '&_password=' + input_password.value);
+				rcmail.display_message(rcmail.gettext('settings_init_server', 'carddav'), 'loading');
+				rcmail.http_post('plugin.carddav-server-save', '_label=' + input_label.value + '&_server_url=' + input_url.value + '&_username=' + input_username.value + '&_password=' + input_password.value);
 			}
 		}, true);
 	});
 	
-	function carddav_server_check(response)
+	function carddav_server_message(response)
 	{
-		if (response.check == 'false')
+		if (response.check)
 		{
-			rcmail.display_message(rcmail.gettext('settings_no_connection', 'carddav'), 'error');
+			rcmail.display_message(response.message, 'confirmation');
 		}
 		else
 		{
-			rcmail.gui_objects.carddavserverform.submit();
+			rcmail.display_message(response.message, 'error');
 		}
 	}
 }
