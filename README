@@ -1,14 +1,14 @@
 Description
 -----------
-This is a cardDAV implementation for roundcube 0.6 or higher
+This is a CardDAV implementation for roundcube 0.6 or higher
 
 
 Features
 --------
-* add multiple cardDAV-Server for each user
-* cardDAV contacts will be synchronized automaticly (not implemented yet)
+* add multiple CardDAV-Server for each user
+* CardDAV contacts will be synchronized automaticly (not implemented yet)
 * 2-way synchronization (not implemented yet)
-* cardDAV-Contacts are stored in the local database which provides great performance (not implemented yet)
+* CardDAV-Contacts are stored in the local database which provides great performance (not implemented yet)
 
 
 Installation
@@ -16,19 +16,18 @@ Installation
 * execute SQL-Statements from /plugins/carddav/SQL/
 * add 'carddav' to the plugins-array in /config/main.inc.php
 * copy /plugins/carddav/config.inc.php.dist to /plugins/carddav/config.inc.php
-* login into your roundcube webmail and add your cardDAV-Server in the settings
+* login into your roundcube webmail and add your CardDAV-Server in the settings
 
 
 TODO
 ----
-* manuell cardDAV-Contacts sync
-* automatic cardDAV-Cntacts sync
+* manuell CardDAV-Contacts sync
+* automatic CardDAV-Cntacts sync
 * edit / add / delete vcards (2-way-sync)
-* cardDAV-Settings via ajax
 
 
 Contact
 -------
 * Author: Christian Putzke <christian.putzke@graviox.de>
-* Report feature requests and bugs here: https://github.com/graviox/Roundcube-cardDAV/issues
+* Report feature requests and bugs here: https://github.com/graviox/Roundcube-CardDAV/issues
 * Visit Graviox Studios: http://www.graviox.de/

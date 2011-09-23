@@ -1,8 +1,7 @@
 <?php
 
 /**
- * Roundcube cardDAV addressbook extension
- * 
+ * Roundcube CardDAV addressbook extension
  * 
  * @author Christian Putzke <christian.putzke@graviox.de>
  * @copyright Graviox Studios
