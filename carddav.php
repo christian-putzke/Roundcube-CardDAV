@@ -119,12 +119,14 @@ class carddav extends rcube_plugin
 	*
 	* @return string $output HTML rendered cardDAV-Server list
 	*/
-	public function get_carddav_server_list()
+	protected function get_carddav_server_list()
 	{
 		$servers = $this->get_carddav_server();
 	
 		if (!empty($servers))
 		{
+			$rcmail = rcmail::get_instance();
+			
 			$table = new html_table(array(
 				'cols' => 5,
 				'width' => '950'
@@ -138,11 +140,20 @@ class carddav extends rcube_plugin
 			
 			foreach ($servers as $server)
 			{
+				$delete_submit = $rcmail->output->button(array(
+					'command' => 'plugin.carddav-server-delete',
+					'prop' => $server['carddav_server_id'],
+					'type' => 'input',
+					'class' => 'button mainaction',
+					'label' => 'delete'
+				));
+				
 				$table->add(null, $server['label']);
 				$table->add(null, $server['url']);
 				$table->add(null, $server['username']);
 				$table->add(null, '**********');
-				$table->add(null, html::a(array('href' => './?_task=settings&_action=plugin.carddav-server-delete&id='.$server['carddav_server_id']), 'delete'));
+				$table->add(null, $delete_submit);
+// 				$table->add(null, html::a(array('href' => './?_task=settings&_action=plugin.carddav-server-delete&id='.$server['carddav_server_id']), 'delete'));
 			}
 			
 			return $table->show();
@@ -203,7 +214,7 @@ class carddav extends rcube_plugin
 	 * @see carddav_backend::check_connection()
 	 * @return boolean $carddav_backend->check_connection()
 	 */
-	public function carddav_check_server_connection()
+	public function carddav_server_check_connection()
 	{
 		$rcmail = rcmail::get_instance();
 		$url = get_input_value('_server_url', RCUBE_INPUT_POST);
@@ -271,21 +282,13 @@ class carddav extends rcube_plugin
 		$table->add(null, $input_password->show());
 		$table->add(null, $input_submit);
 
-		$rcmail->output->add_gui_object('carddavserverform', 'carddav-server-form');
-		
 		$out = html::div(
 			array('class' => 'box'),
 			html::div(array('class' => 'boxtitle'), $this->gettext('settings')).
-			html::div(array('class' => 'boxcontent'), $this->get_carddav_server_list()).
+			html::div(array('class' => 'boxcontent', 'id' => 'carddav_server_list'), $this->get_carddav_server_list()).
 			html::div(array('class' => 'boxcontent'), $table->show())
 		);
-		
-		return $rcmail->output->form_tag(array(
-			'id' => 'carddav-server-form',
-			'name' => 'carddav-server-form',
-			'method' => 'post',
-			'action' => './?_task=settings&_action=plugin.carddav-server-save',
-		), $out);
+		return $out;
 	}
 	
 	/**
@@ -295,7 +298,7 @@ class carddav extends rcube_plugin
 	{
 		$rcmail = rcmail::get_instance();
 		
-		if ($this->carddav_check_server_connection())
+		if ($this->carddav_server_check_connection())
 		{
 			$user_id = $rcmail->user->data['user_id'];
 			$url = get_input_value('_server_url', RCUBE_INPUT_POST);
@@ -319,6 +322,7 @@ class carddav extends rcube_plugin
 				// $carddav_addressbook->carddav_addressbook_sync();
 
 				$rcmail->output->command('plugin.carddav_server_message', array(
+					'server_list' => $this->get_carddav_server_list(),
 					'message' => $this->gettext('settings_saved'),
 					'check' => true
 				));
@@ -347,7 +351,7 @@ class carddav extends rcube_plugin
 	{
 		$rcmail = rcmail::get_instance();
 		$user_id = $rcmail->user->data['user_id'];
-		$carddav_server_id = $_GET['id'];
+		$carddav_server_id = get_input_value('_carddav_server_id', RCUBE_INPUT_POST);
 		
 		$query = "
 			DELETE FROM
@@ -363,6 +367,7 @@ class carddav extends rcube_plugin
 		if ($rcmail->db->affected_rows())
 		{
 			$rcmail->output->command('plugin.carddav_server_message', array(
+				'server_list' => $this->get_carddav_server_list(),
 				'message' => $this->gettext('settings_deleted'),
 				'check' => true
 			));

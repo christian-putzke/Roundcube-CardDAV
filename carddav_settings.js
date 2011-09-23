@@ -23,9 +23,21 @@ if (window.rcmail)
 			}
 			else
 			{
-				rcmail.display_message(rcmail.gettext('settings_init_server', 'carddav'), 'loading');
-				rcmail.http_post('plugin.carddav-server-save', '_label=' + input_label.value + '&_server_url=' + input_url.value + '&_username=' + input_username.value + '&_password=' + input_password.value);
+				rcmail.http_post(
+					'plugin.carddav-server-save',
+					'_label=' + input_label.value + '&_server_url=' + input_url.value + '&_username=' + input_username.value + '&_password=' + input_password.value,
+					rcmail.display_message(rcmail.gettext('settings_init_server', 'carddav'), 'loading')
+				);
 			}
+		}, true);
+		
+		rcmail.register_command('plugin.carddav-server-delete', function(carddav_server_id)
+		{
+			rcmail.http_post(
+				'plugin.carddav-server-delete',
+				'_carddav_server_id=' + carddav_server_id,
+				rcmail.display_message(rcmail.gettext('settings_delete_loading', 'carddav'), 'loading')
+			);
 		}, true);
 	});
 	
@@ -33,6 +45,10 @@ if (window.rcmail)
 	{
 		if (response.check)
 		{
+			$('#carddav_server_list').hide();
+			$('#carddav_server_list').html(response.server_list)
+			$('#carddav_server_list').show('normal');
+			
 			rcmail.display_message(response.message, 'confirmation');
 		}
 		else

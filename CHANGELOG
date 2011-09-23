@@ -1,11 +1,13 @@
 changes from 0.1 to 0.2
-- cardDAV-Server settings via ajax [TODO]
-- initial cardDAV-Contacts sync (read only) [TODO]
-- manuel cardDAV-Contacts sync (read only) [TODO]
-- cardDAV-Backend Class update to v0.32
+- save / delete CardDAV-Server settings via ajax
+- minor class structure changes
+- minor localization changes
+- initial CardDAV-Contacts sync (read only) [TODO]
+- manuel CardDAV-Contacts sync (read only) [TODO]
+- CardDAV-Backend class update to v0.32
 
 release 0.1
-- save / delete cardDAV-Server settings
-- realtime cardDAV-Server check
-- multiple cardDAV-Server for each user
-- English and German translations
+- save / delete CardDAV-Server settings
+- realtime CardDAV-Server check
+- multiple CardDAV-Server for each user
+- English and German localization
