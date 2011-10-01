@@ -64,7 +64,7 @@
  * @copyright Graviox Studios
  * @link http://www.graviox.de
  * @since 20.07.2011
- * @version 0.33
+ * @version 0.34
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  * 
  */
@@ -104,7 +104,7 @@ class carddav_backend
 	 * 
 	 * @var string
 	 */
-	protected $user_agent = 'CardDAV-PHP/0.33';
+	protected $user_agent = 'CardDAV-PHP/0.34';
 
 	/**
 	 * set the CardDAV-Server url
@@ -310,6 +310,7 @@ class carddav_backend
 				foreach ($xml->response as $response)
 				{
 					$id = str_replace($url['path'], null, $response->href);
+					$id = str_replace('.vcf', null, $id);
 					
 					if (!empty($id))
 					{

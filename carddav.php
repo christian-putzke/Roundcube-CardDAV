@@ -87,9 +87,10 @@ class carddav extends rcube_plugin
 	/**
 	 * get all CardDAV-Servers from the current user
 	 * 
+	 * @param boolean $carddav_server_id CardDAV-Server id to load a single CardDAV-Server
 	 * @return array $servers CardDAV-Server array with label, url, username, password (encrypted)
 	 */
-	protected function get_carddav_server()
+	protected function get_carddav_server($carddav_server_id = false)
 	{
 		$servers = array();
 		$rcmail = rcmail::get_instance();
@@ -102,15 +103,16 @@ class carddav extends rcube_plugin
 				".get_table_name('carddav_server')."
 			WHERE
 				user_id = ?
+			".($carddav_server_id !== false ? " AND carddav_server_id = ?" : null)."
 		";
 	
-		$result = $rcmail->db->query($query, $user_id);
+		$result = $rcmail->db->query($query, $user_id, $carddav_server_id);
 	
 		while($server = $rcmail->db->fetch_assoc($result))
 		{
 			$servers[] = $server;
 		}
-	
+		
 		return $servers;
 	}
 	
@@ -205,12 +207,13 @@ class carddav extends rcube_plugin
 	
 	/**
 	 * synchronize CardDAV addressbook
+	 * 
+	 * @param boolean $carddav_server_id CardDAV-Server id to synchronize a single CardDAV-Server
 	 */
-	protected function carddav_addressbook_sync()
+	protected function carddav_addressbook_sync($carddav_server_id = false)
 	{
-		// TODO: add addressbook contacts
-		// $carddav_addressbook = new carddav_addressbook(null, $this->get_carddav_server());
-		// $carddav_addressbook->carddav_addressbook_sync();
+		$carddav_addressbook = new carddav_addressbook(null, $this->get_carddav_server($carddav_server_id));
+		$carddav_addressbook->carddav_addressbook_sync();
 	}
 	
 	/**
@@ -334,7 +337,7 @@ class carddav extends rcube_plugin
 			
 			if ($rcmail->db->affected_rows())
 			{
-				$this->carddav_addressbook_sync();
+				$this->carddav_addressbook_sync($rcmail->db->insert_id());
 
 				$rcmail->output->command('plugin.carddav_server_message', array(
 					'server_list' => $this->get_carddav_server_list(),
