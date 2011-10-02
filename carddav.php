@@ -27,7 +27,7 @@ class carddav extends rcube_plugin
 	 * 
 	 * @var string
 	 */
-	public $task = 'settings|addressbook';
+	public $task = 'settings|addressbook|mail';
 	
 	/**
 	 * CardDAV-Addressbook id
@@ -80,6 +80,18 @@ class carddav extends rcube_plugin
 					'height' => 32,
 					'title' => 'carddav.addressbook_sync'
 				), 'toolbar');
+			break;
+			
+			case 'mail':
+				$this->add_hook('addressbooks_list', array($this, 'carddav_addressbook_sources'));
+				$this->add_hook('addressbook_get', array($this, 'get_carddav_addressbook'));
+				
+				$sources = (array) $rcmail->config->get('autocomplete_addressbooks', array('sql'));
+				if (!in_array($this->carddav_addressbook_id, $sources))
+				{
+					$sources[] = $this->carddav_addressbook_id;
+					$rcmail->config->set('autocomplete_addressbooks', $sources);
+				}
 			break;
 		}
 	}
@@ -181,7 +193,7 @@ class carddav extends rcube_plugin
 		{
 			$addressbook['instance'] = new carddav_addressbook($this->carddav_addressbook_label, $this->get_carddav_server());
 		}
-	
+		
 		return $addressbook;
 	}
 

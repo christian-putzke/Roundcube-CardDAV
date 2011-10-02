@@ -3,9 +3,11 @@ changes from 0.1 to 0.2
 - minor class structure changes
 - minor localization changes
 - minor database changes
-- initial CardDAV-Contacts sync (read only) [TODO]
-- manuel CardDAV-Contacts sync (read only) [TODO]
+- initial CardDAV-Contacts sync
+- addressbook integration (read only)
+- manuel CardDAV-Contacts sync (read only)
 - CardDAV-Backend class update to v0.34
+- autocomplete CardDAV-Contacts
 
 release 0.1
 - save / delete CardDAV-Server settings

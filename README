@@ -8,7 +8,8 @@ Features
 * add multiple CardDAV-Server for each user
 * CardDAV contacts will be synchronized automaticly (not implemented yet)
 * 2-way synchronization (not implemented yet)
-* CardDAV-Contacts are stored in the local database which provides great performance (not implemented yet)
+* CardDAV-Contacts are stored in the local database which provides great performance
+* read / add / delete / edit CardDAV-Contacts (partly implemented - read only)
 
 
 Installation
@@ -21,9 +22,10 @@ Installation
 
 TODO
 ----
-* manuell CardDAV-Contacts sync
-* automatic CardDAV-Cntacts sync
-* edit / add / delete vcards (2-way-sync)
+* 2-way-sync
+* automatic CardDAV-Contacts sync
+* edit / add / delete CardDAV-Contacts
+* search for contacts in the addressbook
 
 
 Contact
