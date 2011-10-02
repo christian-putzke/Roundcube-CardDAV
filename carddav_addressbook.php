@@ -215,6 +215,8 @@ class carddav_addressbook extends rcube_addressbook
 
 	/**
 	 * synchronize CardDAV addressbook
+	 * 
+	 * @return boolean if no error occurred (true) else (false)
 	 */
 	public function carddav_addressbook_sync() 
 	{
@@ -226,21 +228,35 @@ class carddav_addressbook extends rcube_addressbook
 			{
 				$carddav_backend = new carddav_backend($server['url']);
 				$carddav_backend->set_auth($server['username'], $rcmail->decrypt($server['password']));
-				$elements = $carddav_backend->get(false);
-				$carddav_addressbook_contacts = $this->get_carddav_addressbook_contacts($server['carddav_server_id'], false);
 				
-				$xml = new SimpleXMLElement($elements);
-				
-				if (!empty($xml->element))
+				if ($carddav_backend->check_connection())
 				{
-					foreach ($xml->element as $element)
+					$elements = $carddav_backend->get(false);
+					$carddav_addressbook_contacts = $this->get_carddav_addressbook_contacts($server['carddav_server_id'], false);
+					
+					$xml = new SimpleXMLElement($elements);
+					
+					if (!empty($xml->element))
 					{
-						$element_id = (string) $element->id;
-						$element_etag = (string) $element->etag;
-						
-						if (isset($carddav_addressbook_contacts[$element_id]))
+						foreach ($xml->element as $element)
 						{
-							if ($carddav_addressbook_contacts[$element_id] != $element_etag)
+							$element_id = (string) $element->id;
+							$element_etag = (string) $element->etag;
+							
+							if (isset($carddav_addressbook_contacts[$element_id]))
+							{
+								if ($carddav_addressbook_contacts[$element_id] != $element_etag)
+								{
+									$carddav_content = array(
+										'vcard' => $carddav_backend->get_vcard($element_id),
+										'vcard_id' => $element_id,
+										'etag' => $element_etag 
+									);
+									
+									$this->carddav_addressbook_update($server['carddav_server_id'], $carddav_content);
+								}
+							}
+							else
 							{
 								$carddav_content = array(
 									'vcard' => $carddav_backend->get_vcard($element_id),
@@ -248,32 +264,29 @@ class carddav_addressbook extends rcube_addressbook
 									'etag' => $element_etag 
 								);
 								
-								$this->carddav_addressbook_update($server['carddav_server_id'], $carddav_backend->get_vcard($element_id));
+								$this->carddav_addressbook_add($server['carddav_server_id'], $carddav_content);
 							}
-						}
-						else
-						{
-							$carddav_content = array(
-								'vcard' => $carddav_backend->get_vcard($element_id),
-								'vcard_id' => $element_id,
-								'etag' => $element_etag 
-							);
 							
-							$this->carddav_addressbook_add($server['carddav_server_id'], $carddav_content);
+							unset($carddav_addressbook_contacts[$element_id]);
 						}
-						unset($carddav_addressbook_contacts[$element_id]);
-					}
-					
-					if (!empty($carddav_addressbook_contacts))
-					{
-						foreach ($carddav_addressbook_contacts as $vcard_id => $etag)
+						
+						if (!empty($carddav_addressbook_contacts))
 						{
-							$this->carddav_addressbook_delete($server['carddav_server_id'], $vcard_id);
+							foreach ($carddav_addressbook_contacts as $vcard_id => $etag)
+							{
+								$this->carddav_addressbook_delete($server['carddav_server_id'], $vcard_id);
+							}
 						}
 					}
 				}
+				else
+				{
+					return false;
+				}
 			}
 		}
+		
+		return true;
 	}
 	
 	/**
@@ -331,10 +344,10 @@ class carddav_addressbook extends rcube_addressbook
 				".get_table_name('carddav_contacts')."
 			SET
 				etag = ?,
-				vcard ? ,
+				vcard = ?,
 				name = ?,
 				email = ?
-			WEHRE
+			WHERE
 				vcard_id = ?
 			AND
 				carddav_server_id = ?
@@ -375,7 +388,7 @@ class carddav_addressbook extends rcube_addressbook
 		$query = "
 			DELETE FROM
 				".get_table_name('carddav_contacts')."
-			WEHRE
+			WHERE
 				vcard_id = ?
 			AND
 				carddav_server_id = ?
@@ -474,7 +487,9 @@ class carddav_addressbook extends rcube_addressbook
 			WHERE
 				user_id = ?
 			AND
-				".$rcmail->db->ilike('name', '%'.$value.'%')."
+				(".$rcmail->db->ilike('name', '%'.$value.'%')."
+					OR
+				".$rcmail->db->ilike('email', '%'.$value.'%').")
 			ORDER BY
 				name ASC
 		";

@@ -2,31 +2,29 @@ if (window.rcmail)
 {
 	rcmail.addEventListener('init', function(evt)
 	{
-	    rcmail.register_command('plugin.carddav_addressbook_sync', carddav_addressbook_sync, rcmail.env.uid);
-        rcmail.enable_command('plugin.carddav_addressbook_sync', true);
+		rcmail.enable_command('plugin.carddav-addressbook-sync', true);
+		rcmail.addEventListener('plugin.carddav_addressbook_message', carddav_addressbook_message);
 		
-//		rcmail.register_command('plugin.carddav_addressbook_sync', function()
-//		{
-//			alert('yay!');
-//			var input_label = rcube_find_object('_label');
-//			var input_url = rcube_find_object('_server_url');
-//			var input_username = rcube_find_object('_username');
-//			var input_password = rcube_find_object('_password');
-//			
-//			if (input_label.value == '' || input_url.value == '' || input_username.value == '' || input_password.value == '')
-//			{
-//				rcmail.display_message(rcmail.gettext('settings_empty_values', 'carddav'), 'error');
-//			}
-//			else
-//			{
-//				rcmail.http_post('plugin.carddav-server-check', '_server_url=' + input_url.value + '&_username=' + input_username.value + '&_password=' + input_password.value);
-//			}
-//		}, true);
-		
+		rcmail.register_command('plugin.carddav-addressbook-sync', function()
+		{
+			rcmail.http_post(
+				'plugin.carddav-addressbook-sync',
+				'',
+				rcmail.display_message(rcmail.gettext('addressbook_sync_loading', 'carddav'), 'loading')
+			);
+		}, true);
 	});
-}
-
-function carddav_addressbook_sync(prop)
-{
-	alert('callback!');
+	
+	function carddav_addressbook_message(response)
+	{
+		if (response.check)
+		{
+			rcmail.display_message(response.message, 'confirmation');
+		}
+		else
+		{
+			rcmail.display_message(response.message, 'error');
+		}
+	}
+	
 }

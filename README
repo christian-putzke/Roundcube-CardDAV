@@ -6,10 +6,17 @@ This is a CardDAV implementation for roundcube 0.6 or higher
 Features
 --------
 * add multiple CardDAV-Server for each user
-* CardDAV contacts will be synchronized automaticly (not implemented yet)
 * 2-way synchronization (not implemented yet)
 * CardDAV-Contacts are stored in the local database which provides great performance
 * read / add / delete / edit CardDAV-Contacts (partly implemented - read only)
+
+
+Planned Features
+----------------
+* automaticly synchronized CardDAV-Contacts
+* 2-way synchronization
+* edit / add / delete CardDAV-Contacts
+* search for contacts in the addressbook
 
 
 Installation
@@ -18,14 +25,6 @@ Installation
 * add 'carddav' to the plugins-array in /config/main.inc.php
 * copy /plugins/carddav/config.inc.php.dist to /plugins/carddav/config.inc.php
 * login into your roundcube webmail and add your CardDAV-Server in the settings
-
-
-TODO
-----
-* 2-way-sync
-* automatic CardDAV-Contacts sync
-* edit / add / delete CardDAV-Contacts
-* search for contacts in the addressbook
 
 
 Contact

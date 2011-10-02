@@ -64,13 +64,12 @@ class carddav extends rcube_plugin
 			break;
 			
 			case 'addressbook':
-				$skin_path = $this->local_skin_path();
-				
-				$this->add_hook('addressbooks_list', array($this, 'carddav_addressbook_sources'));
-				$this->add_hook('addressbook_get', array($this, 'get_carddav_addressbook'));
-				
 				$this->register_action('plugin.carddav-addressbook-sync', array($this, 'carddav_addressbook_sync'));
 				$this->include_script('carddav_addressbook.js');
+				$this->add_hook('addressbooks_list', array($this, 'carddav_addressbook_sources'));
+				$this->add_hook('addressbook_get', array($this, 'get_carddav_addressbook'));
+
+				$skin_path = $this->local_skin_path();
 				
 				$this->add_button(array(
 					'command' => 'plugin.carddav-addressbook-sync',
@@ -87,6 +86,7 @@ class carddav extends rcube_plugin
 				$this->add_hook('addressbook_get', array($this, 'get_carddav_addressbook'));
 				
 				$sources = (array) $rcmail->config->get('autocomplete_addressbooks', array('sql'));
+				
 				if (!in_array($this->carddav_addressbook_id, $sources))
 				{
 					$sources[] = $this->carddav_addressbook_id;
@@ -222,10 +222,30 @@ class carddav extends rcube_plugin
 	 * 
 	 * @param boolean $carddav_server_id CardDAV-Server id to synchronize a single CardDAV-Server
 	 */
-	protected function carddav_addressbook_sync($carddav_server_id = false)
+	public function carddav_addressbook_sync($carddav_server_id = false, $ajax = true)
 	{
 		$carddav_addressbook = new carddav_addressbook(null, $this->get_carddav_server($carddav_server_id));
-		$carddav_addressbook->carddav_addressbook_sync();
+		$result = $carddav_addressbook->carddav_addressbook_sync();
+		
+		if ($ajax === true)
+		{
+			$rcmail = rcmail::get_instance();
+			
+			if ($result === true)
+			{
+				$rcmail->output->command('plugin.carddav_addressbook_message', array(
+					'message' => $this->gettext('addressbook_synced'),
+					'check' => true
+				));
+			}
+			else
+			{
+				$rcmail->output->command('plugin.carddav_addressbook_message', array(
+					'message' => $this->gettext('addressbook_sync_failed'),
+					'check' => false
+				));
+			}
+		}
 	}
 	
 	/**
@@ -349,7 +369,7 @@ class carddav extends rcube_plugin
 			
 			if ($rcmail->db->affected_rows())
 			{
-				$this->carddav_addressbook_sync($rcmail->db->insert_id());
+				$this->carddav_addressbook_sync($rcmail->db->insert_id(), false);
 
 				$rcmail->output->command('plugin.carddav_server_message', array(
 					'server_list' => $this->get_carddav_server_list(),
