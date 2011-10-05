@@ -16,7 +16,7 @@ require_once dirname(__FILE__).'/carddav_addressbook.php';
  * @copyright Graviox Studios
  * @link http://www.graviox.de
  * @since 06.09.2011
- * @version 0.2
+ * @version 0.21
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  *
  */
@@ -64,33 +64,44 @@ class carddav extends rcube_plugin
 			break;
 			
 			case 'addressbook':
-				$this->register_action('plugin.carddav-addressbook-sync', array($this, 'carddav_addressbook_sync'));
-				$this->include_script('carddav_addressbook.js');
-				$this->add_hook('addressbooks_list', array($this, 'carddav_addressbook_sources'));
-				$this->add_hook('addressbook_get', array($this, 'get_carddav_addressbook'));
-
-				$skin_path = $this->local_skin_path();
-				
-				$this->add_button(array(
-					'command' => 'plugin.carddav-addressbook-sync',
-					'imagepas' => $skin_path.'/sync_pas.png',
-					'imageact' => $skin_path.'/sync_act.png',
-					'width' => 32,
-					'height' => 32,
-					'title' => 'carddav.addressbook_sync'
-				), 'toolbar');
+				if ($this->carddav_server_available())
+				{
+					$this->register_action('plugin.carddav-addressbook-sync', array($this, 'carddav_addressbook_sync'));
+					$this->include_script('carddav_addressbook.js');
+					$this->add_hook('addressbooks_list', array($this, 'carddav_addressbook_sources'));
+					$this->add_hook('addressbook_get', array($this, 'get_carddav_addressbook'));
+	
+					$skin_path = $this->local_skin_path();
+					
+					if (!is_dir($skin_path))
+					{
+						$skin_path = 'skins/default';
+					}
+					
+					$this->add_button(array(
+						'command' => 'plugin.carddav-addressbook-sync',
+						'imagepas' => $skin_path.'/sync_pas.png',
+						'imageact' => $skin_path.'/sync_act.png',
+						'width' => 32,
+						'height' => 32,
+						'title' => 'carddav.addressbook_sync'
+					), 'toolbar');
+				}
 			break;
 			
 			case 'mail':
-				$this->add_hook('addressbooks_list', array($this, 'carddav_addressbook_sources'));
-				$this->add_hook('addressbook_get', array($this, 'get_carddav_addressbook'));
-				
-				$sources = (array) $rcmail->config->get('autocomplete_addressbooks', array('sql'));
-				
-				if (!in_array($this->carddav_addressbook_id, $sources))
+				if ($this->carddav_server_available())
 				{
-					$sources[] = $this->carddav_addressbook_id;
-					$rcmail->config->set('autocomplete_addressbooks', $sources);
+					$this->add_hook('addressbooks_list', array($this, 'carddav_addressbook_sources'));
+					$this->add_hook('addressbook_get', array($this, 'get_carddav_addressbook'));
+					
+					$sources = (array) $rcmail->config->get('autocomplete_addressbooks', array('sql'));
+					
+					if (!in_array($this->carddav_addressbook_id, $sources))
+					{
+						$sources[] = $this->carddav_addressbook_id;
+						$rcmail->config->set('autocomplete_addressbooks', $sources);
+					}
 				}
 			break;
 		}
@@ -196,7 +207,7 @@ class carddav extends rcube_plugin
 		
 		return $addressbook;
 	}
-
+	
 	/**
 	 * get CardDAV-Addressbook source
 	 * 
@@ -257,6 +268,37 @@ class carddav extends rcube_plugin
 		$this->register_handler('plugin.body', array($this, 'carddav_server_form'));
 		$rcmail->output->set_pagetitle($this->gettext('settings'));
 		$rcmail->output->send('plugin');
+	}
+	
+	/**
+	* check if CardDAV-Server are available in the local database 
+	*
+	* @return boolean if CardDAV-Server are available in the local database return true else false 
+	*/
+	protected function carddav_server_available()
+	{
+		$rcmail = rcmail::get_instance();
+		$user_id = $rcmail->user->data['user_id'];
+		
+		$query = "
+			SELECT
+				*
+			FROM
+				".get_table_name('carddav_server')."
+			WHERE
+				user_id = ?
+		";
+
+		$result = $rcmail->db->query($query, $user_id);
+		
+		if ($rcmail->db->num_rows($result))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	
 	/**
