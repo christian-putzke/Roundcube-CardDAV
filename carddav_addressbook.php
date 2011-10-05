@@ -7,7 +7,7 @@
  * @copyright Graviox Studios
  * @since 12.09.2011
  * @link http://www.graviox.de
- * @version 0.2
+ * @version 0.21
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  *
  */
@@ -118,9 +118,10 @@ class carddav_addressbook extends rcube_addressbook
 	 *
 	 * @param integer $carddav_server_id CardDAV-Server id
 	 * @param boolean $all_data show all data (true) or not (false)
+	 * @param array $limit query limits (start, length) 
 	 * @return array $carddav_addressbook_contacts CardDAV-Adressbook contacts
 	 */
-	private function get_carddav_addressbook_contacts($carddav_server_id = null, $all_data = true)
+	private function get_carddav_addressbook_contacts($carddav_server_id = null, $all_data = true, $limit = false)
 	{
 		$rcmail = rcmail::get_instance();
 		$carddav_addressbook_contacts = array();
@@ -137,8 +138,15 @@ class carddav_addressbook extends rcube_addressbook
 				name ASC
 		";
 	
-		$result = $rcmail->db->query($query, $rcmail->user->data['user_id'], $carddav_server_id);
-	
+		if ($limit === false)
+		{
+			$result = $rcmail->db->query($query, $rcmail->user->data['user_id'], $carddav_server_id);
+		}
+		else
+		{
+			$result = $rcmail->db->limitquery($query, $limit['start'], $limit['length'], $rcmail->user->data['user_id'], $carddav_server_id);
+		}
+		
 		if ($rcmail->db->num_rows($result))
 		{
 			while ($contact = $rcmail->db->fetch_assoc($result))
@@ -155,6 +163,80 @@ class carddav_addressbook extends rcube_addressbook
 		}
 	
 		return $carddav_addressbook_contacts;
+	}
+	
+	/**
+	* get group assignments of a specific CardDAV-Contact
+	*
+	* @param integer $carddav_contact_id CardDAV-Contact id
+	* @return array $groups list of assigned groups
+	*/
+	public function get_record_groups($carddav_contact_id)
+	{
+		$groups = array();
+	
+		if ($this->groups === true)
+		{
+			$rcmail = rcmail::get_instance();
+			
+			$query = "
+				SELECT
+					carddav_server_id, label
+				FROM
+					".get_table_name('carddav_server')."
+				WHERE
+					user_id = ?
+				AND
+					carddav_server_id = (
+						SELECT
+							carddav_server_id
+						FROM
+							".get_table_name('carddav_contacts')."
+						WHERE
+							carddav_contact_id = ?
+					)
+			";
+			
+			$result = $rcmail->db->query($query, $rcmail->user->data['user_id'], $carddav_contact_id);
+			
+			if ($rcmail->db->num_rows())
+			{
+				while ($group = $rcmail->db->fetch_assoc($result))
+				{
+					$groups['CardDAV_'.$group['carddav_server_id']] = $group['label'];
+				}
+			}
+		}
+	
+		return $groups;
+	}
+	
+	/**
+	* get count of CardDAV-Contacts specified CardDAV-Addressbook
+	*
+	* @param integer $carddav_server_id CardDAV-Server id
+	* @return array $count count CardDAV-Contacts
+	*/
+	private function get_carddav_addressbook_contacts_count($carddav_server_id = null)
+	{
+		$rcmail = rcmail::get_instance();
+	
+		$query = "
+			SELECT
+				*
+			FROM
+				".get_table_name('carddav_contacts')."
+			WHERE
+				user_id = ?
+			".($carddav_server_id !== null ? "AND carddav_server_id = ?" : null)."
+			ORDER BY
+				name ASC
+		";
+	
+		$result = $rcmail->db->query($query, $rcmail->user->data['user_id'], $carddav_server_id);
+		$count = $rcmail->db->num_rows($result);
+	
+		return $count;
 	}
 	
 	/**
@@ -378,7 +460,7 @@ class carddav_addressbook extends rcube_addressbook
 	 * delete a vCard from the CardDAV-Addressbook
 	 *
 	 * @param integer $carddav_server_id CardDAV-Server id
-	 * @param array $carddav_content vCard id
+	 * @param string $vcard_id vCard id
 	 * @return boolean
 	 */
 	private function carddav_addressbook_delete($carddav_server_id, $vcard_id)
@@ -421,10 +503,13 @@ class carddav_addressbook extends rcube_addressbook
 		{
 			foreach ($this->servers as $server)
 			{
-				$groups[] = array(
-					'ID' => 'cardDAV_'.$server['carddav_server_id'],
-					'name' => $server['label']
-				);
+				if ($search === null || preg_match('/'.strtolower($search).'/', strtolower($server['label'])))
+				{
+					$groups[] = array(
+						'ID' => 'CardDAV_'.$server['carddav_server_id'],
+						'name' => $server['label']
+					);
+				}
 			}
 		}
 		
@@ -440,8 +525,13 @@ class carddav_addressbook extends rcube_addressbook
 	public function list_records($cols = null, $subset = 0)
 	{
 		$this->result = $this->count();
-		$carddav_server_id = (isset($this->group_id) ? str_replace('cardDAV_', null, $this->group_id) : null);
-		$contacts = $this->get_carddav_addressbook_contacts($carddav_server_id);
+		$carddav_server_id = (isset($this->group_id) ? str_replace('CardDAV_', null, $this->group_id) : null);
+		$limit = array(
+			'start' => ($subset < 0 ? $this->result->first + $this->page_size + $subset : $this->result->first),
+			'length' => ($subset != 0 ? abs($subset) : $this->page_size)
+		);
+		
+		$contacts = $this->get_carddav_addressbook_contacts($carddav_server_id, true, $limit);
 		
 		if (!empty($contacts))
 		{
@@ -520,11 +610,17 @@ class carddav_addressbook extends rcube_addressbook
 	}
 
 	/**
+	 * count CardDAV-Contacts for a specified CardDAV-Addressbook and return the result set
+	 * 
+	 * @return rcube_result_set
 	 * @see rcube_addressbook::count()
 	 */
 	public function count()
 	{
-		return new rcube_result_set(1, ($this->list_page - 1) * $this->page_size);
+		$carddav_server_id = (isset($this->group_id) ? str_replace('CardDAV_', null, $this->group_id) : null);
+		$count = $this->get_carddav_addressbook_contacts_count($carddav_server_id);
+		
+		return new rcube_result_set($count, ($this->list_page - 1) * $this->page_size);
 	}
 
 	/**

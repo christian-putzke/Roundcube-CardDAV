@@ -1,3 +1,11 @@
+changes from 0.2 to 0.21
+- show CardDAV-Contacts list (addressbook pagination) bugfix
+- autocomplete CardDAV-Contacts Groups bugfix
+- CardDAV-Groups will now be displayed correctly in the CardDAV-Contact detail view
+- hide CardDAV-Contacts sync button if no CardDAV-Servers were added
+- fallback skin path added "skins/default"
+- minor localization changes
+
 changes from 0.1 to 0.2
 - save / delete CardDAV-Server settings via ajax
 - minor class structure changes
