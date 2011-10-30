@@ -1,3 +1,7 @@
+changes from 0.21 to 0.22
+- CardDAV-Backend class update to v0.4
+- added apple addressbook server support
+
 changes from 0.2 to 0.21
 - show CardDAV-Contacts list (addressbook pagination) bugfix
 - autocomplete CardDAV-Contacts Groups bugfix
