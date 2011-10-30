@@ -66,7 +66,7 @@
  * @copyright Graviox Studios
  * @link http://www.graviox.de
  * @since 20.07.2011
- * @version 0.4
+ * @version 0.4.1
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  * 
  */
@@ -99,7 +99,7 @@ class carddav_backend
 	 * 
 	 * @var string
 	 */
-	protected $user_agent = 'CardDAV-PHP/0.4';
+	protected $user_agent = 'CardDAV-PHP/0.4.1';
 	
 	/**
 	 * constructor
@@ -238,8 +238,8 @@ class carddav_backend
 	 */
 	private function simplify($response, $include_vcards = true)
 	{
-		$response = str_replace('VC:address-data', 'vcard', $response);
-		$url = parse_url($this->url);
+		$response = $this->clean_response($response);
+		
 		$xml = new SimpleXMLElement($response);
 		
 		$simplified_xml = new XMLWriter();
@@ -251,9 +251,9 @@ class carddav_backend
 			
 				foreach ($xml->response as $response)
 				{
-					if (preg_match('/text\/vcard/', $response->propstat->prop->getcontenttype))
+					if (preg_match('/vcard/', $response->propstat->prop->getcontenttype))
 					{
-						$id = str_replace($url['path'], null, $response->href);
+						$id = basename($response->href);
 						$id = str_replace('.vcf', null, $id);
 	
 						if (!empty($id))
@@ -261,7 +261,7 @@ class carddav_backend
 							$simplified_xml->startElement('element');
 							$simplified_xml->writeElement('id', $id);
 							$simplified_xml->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
-							$simplified_xml->writeElement('last_modified', $response->propstat->prop->getlastmodified);
+							$simplified_xml->writeElement('last_modified', strtotime($response->propstat->prop->getlastmodified));
 	
 							if ($include_vcards === true)
 							{
@@ -280,6 +280,19 @@ class carddav_backend
 	}
 	
 	/**
+	 * cleans CardDAV xml-response
+	 * 
+	 * @param string $response CardDAV xml-response
+	 * @return string $response cleaned CardDAV xml-response
+	 */
+	private function clean_response($response)
+	{
+		$response = str_replace('D:', null, $response);
+		
+		return $response;
+	}
+	
+	/**
 	 * quries the CardDAV-Server via curl and returns the response
 	 * 
 	 * @param string $method HTTP-Method like (OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, COPY, MOVE)
@@ -291,6 +304,7 @@ class carddav_backend
 	{
 		$ch = curl_init($url);
 		
+		curl_setopt($ch, CURLOPT_HEADER, false);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -315,9 +329,18 @@ class carddav_backend
 		}
 		
 		$response = curl_exec($ch);
+		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		
 		curl_close($ch);
-
-		return $response;
+		
+		if (in_array($http_code, array(200, 207)))
+		{
+			return $response;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	
 	/**

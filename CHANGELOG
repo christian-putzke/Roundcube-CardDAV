@@ -1,8 +1,15 @@
-changes from 0.21 to 0.22
+changes from v0.2.2 to v0.2.3
+- added meetoo support
+- CardDAV-Backend class update to v0.4.1
+- added addressbook search functionality
+- changed version naming
+- carddav_addressbook class restructured
+
+changes from 0.2.1 to 0.2.2
 - CardDAV-Backend class update to v0.4
 - added apple addressbook server support
 
-changes from 0.2 to 0.21
+changes from 0.2 to 0.2.1
 - show CardDAV-Contacts list (addressbook pagination) bugfix
 - autocomplete CardDAV-Contacts Groups bugfix
 - CardDAV-Groups will now be displayed correctly in the CardDAV-Contact detail view
@@ -18,7 +25,7 @@ changes from 0.1 to 0.2
 - initial CardDAV-Contacts sync
 - addressbook integration (read only)
 - manuel CardDAV-Contacts sync (read only)
-- CardDAV-Backend class update to v0.34
+- CardDAV-Backend class update to v0.3.4
 - autocomplete CardDAV-Contacts
 
 release 0.1

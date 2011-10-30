@@ -7,7 +7,7 @@
  * @copyright Graviox Studios
  * @since 12.09.2011
  * @link http://www.graviox.de
- * @version 0.21
+ * @version 0.2.3
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  *
  */
@@ -42,41 +42,52 @@ class carddav_addressbook extends rcube_addressbook
 	public $group_id;
 
 	/**
-	 * Enter description here ...
+	 * search filters
 	 * 
-	 * $filter unknown_type
+	 * $filter array
 	 */
 	private $filter;
 	
 	/**
-	* Enter description here ...
+	* define which filter searches in which database field
 	*
-	* $result unknown_type
+	* $filter array
+	*/
+	private $filter_db_fields = array(
+		'*' => 'vcard',
+		'email' => 'email',
+		'surname' => 'name',
+		'firstname' => 'name',
+		'name' => 'name'
+	);
+	
+	/**
+	* result set
+	*
+	* $result rcube_result_set
 	*/
 	private $result;
 	
 	/**
 	* translated addressbook name
 	*
-	* $name strings
+	* $name string
 	*/
 	private $name;
 	
 	/**
 	* all CardDAV-Servers from the logged in user
 	*
-	* $servers unknown_type
+	* $servers mixed
 	*/
 	private $servers;
 
 	/**
-	 * Enter description here ...
 	 * @var array $table_cols
 	 */
 	private $table_cols = array('name', 'email', 'firstname', 'surname');
 	
 	/**
-	 * Enter description here ...
 	 * @var array $fulltext_cols
 	 */
 	private $fulltext_cols = array('name', 'firstname', 'surname', 'middlename', 'nickname',
@@ -84,7 +95,6 @@ class carddav_addressbook extends rcube_addressbook
 	      'address', 'street', 'locality', 'zipcode', 'region', 'country', 'website', 'im', 'notes');
 	
 	/**
-	 * Enter description here ...
 	 * @var array $coltypes
 	 */
 	public $coltypes = array('name', 'firstname', 'surname', 'middlename', 'prefix', 'suffix', 'nickname',
@@ -106,7 +116,9 @@ class carddav_addressbook extends rcube_addressbook
 	}
 
 	/**
-	 * @see rcube_addressbook::get_name()
+	 * get translated addressbook name
+	 * 
+	 * @return string $this->name translated addressbook name
 	 */
 	public function get_name()
 	{
@@ -134,6 +146,7 @@ class carddav_addressbook extends rcube_addressbook
 			WHERE
 				user_id = ?
 			".($carddav_server_id !== null ? "AND carddav_server_id = ?" : null)."
+			".$this->get_search_set()."
 			ORDER BY
 				name ASC
 		";
@@ -153,7 +166,8 @@ class carddav_addressbook extends rcube_addressbook
 			{
 				if ($all_data === false)
 				{
-					$carddav_addressbook_contacts[$contact['vcard_id']] = $contact['etag'];
+					$carddav_addressbook_contacts[$contact['vcard_id']]['etag'] = $contact['etag'];
+					$carddav_addressbook_contacts[$contact['vcard_id']]['last_modified'] = $contact['last_modified'];
 				}
 				else
 				{
@@ -163,52 +177,6 @@ class carddav_addressbook extends rcube_addressbook
 		}
 	
 		return $carddav_addressbook_contacts;
-	}
-	
-	/**
-	* get group assignments of a specific CardDAV-Contact
-	*
-	* @param integer $carddav_contact_id CardDAV-Contact id
-	* @return array $groups list of assigned groups
-	*/
-	public function get_record_groups($carddav_contact_id)
-	{
-		$groups = array();
-	
-		if ($this->groups === true)
-		{
-			$rcmail = rcmail::get_instance();
-			
-			$query = "
-				SELECT
-					carddav_server_id, label
-				FROM
-					".get_table_name('carddav_server')."
-				WHERE
-					user_id = ?
-				AND
-					carddav_server_id = (
-						SELECT
-							carddav_server_id
-						FROM
-							".get_table_name('carddav_contacts')."
-						WHERE
-							carddav_contact_id = ?
-					)
-			";
-			
-			$result = $rcmail->db->query($query, $rcmail->user->data['user_id'], $carddav_contact_id);
-			
-			if ($rcmail->db->num_rows())
-			{
-				while ($group = $rcmail->db->fetch_assoc($result))
-				{
-					$groups['CardDAV_'.$group['carddav_server_id']] = $group['label'];
-				}
-			}
-		}
-	
-		return $groups;
 	}
 	
 	/**
@@ -271,23 +239,158 @@ class carddav_addressbook extends rcube_addressbook
 	}
 
 	/**
-	 * @see rcube_addressbook::get_search_set()
+	* get group assignments of a specific CardDAV-Contact
+	*
+	* @param integer $carddav_contact_id CardDAV-Contact id
+	* @return array $groups list of assigned groups
+	*/
+	public function get_record_groups($carddav_contact_id)
+	{
+		$groups = array();
+	
+		if ($this->groups === true)
+		{
+			$rcmail = rcmail::get_instance();
+				
+			$query = "
+					SELECT
+						carddav_server_id, label
+					FROM
+						".get_table_name('carddav_server')."
+					WHERE
+						user_id = ?
+					AND
+						carddav_server_id = (
+							SELECT
+								carddav_server_id
+							FROM
+								".get_table_name('carddav_contacts')."
+							WHERE
+								carddav_contact_id = ?
+						)
+				";
+				
+			$result = $rcmail->db->query($query, $rcmail->user->data['user_id'], $carddav_contact_id);
+				
+			if ($rcmail->db->num_rows())
+			{
+				while ($group = $rcmail->db->fetch_assoc($result))
+				{
+					$groups['CardDAV_'.$group['carddav_server_id']] = $group['label'];
+				}
+			}
+		}
+	
+		return $groups;
+	}
+	
+	/**
+	 * get result set
+	 * 
+	* @return rcube_result_set $this->result result set
+	*/
+	public function get_result()
+	{
+		return $this->result;
+	}
+	
+	/**
+	 * @param integer $carddav_contact_id CardDAV-Contact id
+	 * @param boolean $assoc define if result should be assoc or rcube_result_set 
+	 * 
+	 * @return mixed returns contact or rcube_result_set
 	 */
-	public function get_search_set()
+	public function get_record($carddav_contact_id, $assoc = false)
+	{
+		$contact = $this->get_carddav_addressbook_contact($carddav_contact_id);
+		$contact['ID'] = $contact[$this->primary_key];
+		unset($contact['email']);
+	
+		$vcard = new rcube_vcard($contact['vcard']);
+		$contact += $vcard->get_assoc();
+	
+		$this->result = new rcube_result_set(1);
+		$this->result->add($contact);
+	
+		if ($assoc === true)
+		{
+			return $contact;
+		}
+		else
+		{
+			return $this->result;
+		}
+	}
+	
+	/**
+	* Getter for saved search properties
+	*
+	* @return mixed Search properties
+	*/
+	function get_search_set()
 	{
 		return $this->filter;
 	}
-
+	
 	/**
-	 * @see rcube_addressbook::set_search_set()
+	 * Save a search string for future listings
+	 *
+	 * @param string SQL params to use in listing method
 	 */
-	public function set_search_set($filter)
+	function set_search_set($filter)
 	{
 		$this->filter = $filter;
 	}
+	
+	/**
+	 * set database search filter
+	 * 
+	 * @param mixed $fields database field names
+	 * @param string $value searched value
+	 */
+	public function set_filter($fields, $value)
+	{
+		$rcmail = rcmail::get_instance();
+		
+		if (is_array($fields))
+		{
+			$filter = "AND (";
+			
+			foreach ($fields as $field)
+			{
+				if (isset($this->filter_db_fields[$field]))
+				{
+					$filter .= $rcmail->db->ilike($this->filter_db_fields[$field], '%'.$value.'%')." OR ";
+				}
+			}
+			
+			$filter = substr($filter, 0, -4);
+			$filter .= ")";
+		}
+		else
+		{
+			if (isset($this->filter_db_fields[$fields]))
+			{
+				$filter = " AND ".$rcmail->db->ilike($this->filter_db_fields[$fields], '%'.$value.'%');
+			}
+		}
+		
+		$this->set_search_set($filter);
+	}
+	
+	
+	/**
+	 * set internal addressbook group id
+	 * 
+	* @param string $group_id
+	*/
+	function set_group($group_id)
+	{
+		$this->group_id = $group_id;
+	}
 
 	/**
-	 * @see rcube_addressbook::reset()
+	 * reset cached filters and results
 	 */
 	public function reset()
 	{
@@ -324,15 +427,18 @@ class carddav_addressbook extends rcube_addressbook
 						{
 							$element_id = (string) $element->id;
 							$element_etag = (string) $element->etag;
+							$element_last_modified = (int) $element->last_modified;
 							
 							if (isset($carddav_addressbook_contacts[$element_id]))
 							{
-								if ($carddav_addressbook_contacts[$element_id] != $element_etag)
+								if ($carddav_addressbook_contacts[$element_id]['etag'] != $element_etag ||
+									$carddav_addressbook_contacts[$element_id]['last_modified'] < $element_last_modified)
 								{
 									$carddav_content = array(
 										'vcard' => $carddav_backend->get_vcard($element_id),
 										'vcard_id' => $element_id,
-										'etag' => $element_etag 
+										'etag' => $element_etag,
+										'last_modified' => $element_last_modified
 									);
 									
 									$this->carddav_addressbook_update($server['carddav_server_id'], $carddav_content);
@@ -343,7 +449,8 @@ class carddav_addressbook extends rcube_addressbook
 								$carddav_content = array(
 									'vcard' => $carddav_backend->get_vcard($element_id),
 									'vcard_id' => $element_id,
-									'etag' => $element_etag 
+									'etag' => $element_etag,
+									'last_modified' => $element_last_modified
 								);
 								
 								$this->carddav_addressbook_add($server['carddav_server_id'], $carddav_content);
@@ -385,9 +492,9 @@ class carddav_addressbook extends rcube_addressbook
 
 		$query = "
 			INSERT INTO
-				".get_table_name('carddav_contacts')." (carddav_server_id, user_id, etag, vcard_id, vcard, name, email)
+				".get_table_name('carddav_contacts')." (carddav_server_id, user_id, etag, last_modified, vcard_id, vcard, name, email)
 			VALUES
-				(?, ?, ?, ?, ?, ?, ?)
+				(?, ?, ?, ?, ?, ?, ?, ?)
 		";
 		
 		$result = $rcmail->db->query(
@@ -395,6 +502,7 @@ class carddav_addressbook extends rcube_addressbook
 			$carddav_server_id,
 			$rcmail->user->data['user_id'],
 			$carddav_content['etag'],
+			$carddav_content['last_modified'],
 			$carddav_content['vcard_id'],
 			$carddav_content['vcard'],
 			$vcard->displayname,
@@ -426,6 +534,7 @@ class carddav_addressbook extends rcube_addressbook
 				".get_table_name('carddav_contacts')."
 			SET
 				etag = ?,
+				last_modified = ?,
 				vcard = ?,
 				name = ?,
 				email = ?
@@ -440,6 +549,7 @@ class carddav_addressbook extends rcube_addressbook
 		$result = $rcmail->db->query(
 			$query,
 			$carddav_content['etag'],
+			$carddav_content['last_modified'],
 			$carddav_content['vcard'],
 			$vcard->displayname,
 			implode($vcard->email, ', '),
@@ -492,7 +602,6 @@ class carddav_addressbook extends rcube_addressbook
 	 * list CardDAV-Adressbooks
 	 * 
 	 * @param string $search Optional search string to match group name
-	 * @see rcube_addressbook::list_groups()
 	 * @return array $groups list of CardDAV-Adressbooks
 	 */
 	public function list_groups($search = null)
@@ -519,7 +628,6 @@ class carddav_addressbook extends rcube_addressbook
 	/**
 	 * return a list of CardDAV-Adressbook contacts
 	 * 
-	 * @see rcube_addressbook::list_records()
 	 * @return rcube_result_set $this->result list of CardDAV-Adressbook contacts 
 	 */
 	public function list_records($cols = null, $subset = 0)
@@ -562,9 +670,9 @@ class carddav_addressbook extends rcube_addressbook
 	 * search and autocomplete contacts in the mail view
 	 * 
 	 * @param string $value searched string
-	 * @return rcube_result_set $this->result list of CardDAV-Adressbook contacts
+	 * @return rcube_result_set $this->result list of searched CardDAV-Adressbook contacts
 	 */
-	private function search_carddav_addressbook_contacts($value)
+	private function search_carddav_addressbook_contacts()
 	{
 		$rcmail = rcmail::get_instance();
 		$this->result = $this->count();
@@ -576,10 +684,7 @@ class carddav_addressbook extends rcube_addressbook
 				".get_table_name('carddav_contacts')."
 			WHERE
 				user_id = ?
-			AND
-				(".$rcmail->db->ilike('name', '%'.$value.'%')."
-					OR
-				".$rcmail->db->ilike('email', '%'.$value.'%').")
+			".$this->get_search_set()."			
 			ORDER BY
 				name ASC
 		";
@@ -602,18 +707,20 @@ class carddav_addressbook extends rcube_addressbook
 	}
 	
 	/**
-	 * @see rcube_addressbook::search()
+	 * search method (autocomplete, addressbook)
+	 * 
+	 * @return rcube_result_set list of searched CardDAV-Adressbook contacts
 	 */
 	public function search($fields, $value, $strict = false, $select = true, $nocount = false, $required = array())
 	{
-		return $this->search_carddav_addressbook_contacts($value);
+		$this->set_filter($fields, $value);
+		return $this->search_carddav_addressbook_contacts();
 	}
 
 	/**
 	 * count CardDAV-Contacts for a specified CardDAV-Addressbook and return the result set
 	 * 
 	 * @return rcube_result_set
-	 * @see rcube_addressbook::count()
 	 */
 	public function count()
 	{
@@ -621,40 +728,6 @@ class carddav_addressbook extends rcube_addressbook
 		$count = $this->get_carddav_addressbook_contacts_count($carddav_server_id);
 		
 		return new rcube_result_set($count, ($this->list_page - 1) * $this->page_size);
-	}
-
-	/**
-	 * @see rcube_addressbook::get_result()
-	 */
-	public function get_result()
-	{
-		return $this->result;
-	}
-
-	/**
-	 * (non-PHPdoc)
-	 * @see rcube_addressbook::get_record()
-	 */
-	public function get_record($carddav_contact_id, $assoc = false)
-	{
-		$contact = $this->get_carddav_addressbook_contact($carddav_contact_id);
-		$contact['ID'] = $contact[$this->primary_key];
-		unset($contact['email']);
-		
-		$vcard = new rcube_vcard($contact['vcard']);
-		$contact += $vcard->get_assoc();
-
-		$this->result = new rcube_result_set(1);
-		$this->result->add($contact);
-		
-		if ($assoc === true)
-		{
-			return $contact;
-		}
-		else
-		{
-			return $this->result;
-		}
 	}
 
 	/**
@@ -696,13 +769,4 @@ class carddav_addressbook extends rcube_addressbook
 	{
 		 return false;
 	}
-
-	/**
-	 * @see rcube_addressbook::set_group()
-	 */
-	function set_group($gid)
-	{
-		$this->group_id = $gid;
-	}
-
 }

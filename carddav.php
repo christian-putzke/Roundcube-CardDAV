@@ -16,7 +16,7 @@ require_once dirname(__FILE__).'/carddav_addressbook.php';
  * @copyright Graviox Studios
  * @link http://www.graviox.de
  * @since 06.09.2011
- * @version 0.21
+ * @version 0.2.3
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  *
  */
