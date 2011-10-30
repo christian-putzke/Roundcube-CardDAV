@@ -66,7 +66,7 @@
  * @copyright Graviox Studios
  * @link http://www.graviox.de
  * @since 20.07.2011
- * @version 0.4.1
+ * @version 0.4.2
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  * 
  */
@@ -99,7 +99,7 @@ class carddav_backend
 	 * 
 	 * @var string
 	 */
-	protected $user_agent = 'CardDAV-PHP/0.4.1';
+	protected $user_agent = 'CardDAV-PHP/0.4.2';
 	
 	/**
 	 * constructor
@@ -261,7 +261,7 @@ class carddav_backend
 							$simplified_xml->startElement('element');
 							$simplified_xml->writeElement('id', $id);
 							$simplified_xml->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
-							$simplified_xml->writeElement('last_modified', strtotime($response->propstat->prop->getlastmodified));
+							$simplified_xml->writeElement('last_modified', $response->propstat->prop->getlastmodified);
 	
 							if ($include_vcards === true)
 							{

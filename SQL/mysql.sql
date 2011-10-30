@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS `carddav_contacts` (
   `carddav_server_id` int(10) unsigned NOT NULL,
   `user_id` int(10) unsigned NOT NULL,
   `etag` varchar(64) NOT NULL,
-  `last_modified` int(10) unsigned NOT NULL,
+  `last_modified` VARCHAR(128) NOT NULL,
   `vcard_id` varchar(64) NOT NULL,
   `vcard` longtext NOT NULL,
   `name` varchar(255) NOT NULL,

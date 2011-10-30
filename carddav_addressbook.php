@@ -7,7 +7,7 @@
  * @copyright Graviox Studios
  * @since 12.09.2011
  * @link http://www.graviox.de
- * @version 0.2.3
+ * @version 0.2.4
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  *
  */
@@ -427,12 +427,12 @@ class carddav_addressbook extends rcube_addressbook
 						{
 							$element_id = (string) $element->id;
 							$element_etag = (string) $element->etag;
-							$element_last_modified = (int) $element->last_modified;
+							$element_last_modified = (string) $element->last_modified;
 							
 							if (isset($carddav_addressbook_contacts[$element_id]))
 							{
 								if ($carddav_addressbook_contacts[$element_id]['etag'] != $element_etag ||
-									$carddav_addressbook_contacts[$element_id]['last_modified'] < $element_last_modified)
+									$carddav_addressbook_contacts[$element_id]['last_modified'] != $element_last_modified)
 								{
 									$carddav_content = array(
 										'vcard' => $carddav_backend->get_vcard($element_id),
