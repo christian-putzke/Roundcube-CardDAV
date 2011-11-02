@@ -16,7 +16,7 @@ require_once dirname(__FILE__).'/carddav_addressbook.php';
  * @copyright Graviox Studios
  * @link http://www.graviox.de
  * @since 06.09.2011
- * @version 0.2.4
+ * @version 0.2.5
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  *
  */
@@ -61,6 +61,7 @@ class carddav extends rcube_plugin
 				$this->register_action('plugin.carddav-server-save', array($this, 'carddav_server_save'));
 				$this->register_action('plugin.carddav-server-delete', array($this, 'carddav_server_delete'));
 				$this->include_script('carddav_settings.js');
+				$this->include_script('jquery.base64.js');
 			break;
 			
 			case 'addressbook':
@@ -310,9 +311,9 @@ class carddav extends rcube_plugin
 	public function carddav_server_check_connection()
 	{
 		$rcmail = rcmail::get_instance();
-		$url = get_input_value('_server_url', RCUBE_INPUT_POST);
-		$username = get_input_value('_username', RCUBE_INPUT_POST);
-		$password = get_input_value('_password', RCUBE_INPUT_POST);
+		$url = parse_input_value(base64_decode($_POST['_server_url']));
+		$username = parse_input_value(base64_decode($_POST['_username']));
+		$password = parse_input_value(base64_decode($_POST['_password']));
 		
 		$carddav_backend = new carddav_backend($url);
 		$carddav_backend->set_auth($username, $password);
@@ -395,10 +396,10 @@ class carddav extends rcube_plugin
 		if ($this->carddav_server_check_connection())
 		{
 			$user_id = $rcmail->user->data['user_id'];
-			$url = get_input_value('_server_url', RCUBE_INPUT_POST);
-			$username = get_input_value('_username', RCUBE_INPUT_POST);
-			$password = get_input_value('_password', RCUBE_INPUT_POST);
-			$label = get_input_value('_label', RCUBE_INPUT_POST);
+			$url = parse_input_value(base64_decode($_POST['_server_url']));
+			$username = parse_input_value(base64_decode($_POST['_username']));
+			$password = parse_input_value(base64_decode($_POST['_password']));
+			$label = parse_input_value(base64_decode($_POST['_label']));
 			
 			$query = "
 				INSERT INTO
@@ -443,7 +444,7 @@ class carddav extends rcube_plugin
 	{
 		$rcmail = rcmail::get_instance();
 		$user_id = $rcmail->user->data['user_id'];
-		$carddav_server_id = get_input_value('_carddav_server_id', RCUBE_INPUT_POST);
+		$carddav_server_id = parse_input_value(base64_decode($_POST['_carddav_server_id']));
 		
 		$query = "
 			DELETE FROM

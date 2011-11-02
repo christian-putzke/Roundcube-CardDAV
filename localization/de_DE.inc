@@ -8,7 +8,7 @@ $labels['addressbook_contacts']			= 'CardDAV-Kontakte';
 $labels['addressbook_sync']				= 'CardDAV-Adressbuch synchronisieren';
 
 $messages = array();
-$messages['settings_empty_values']		= 'Bitte f&uuml;lle alle Felder aus';
+$messages['settings_empty_values']		= 'Bitte gebe ein Label und die URL an';
 $messages['settings_saved']				= 'CardDAV-Server Einstellungen und vCards erfolgreich gespeichert';
 $messages['settings_save_failed']		= 'Beim Speichern der CardDAV-Server Einstellungen ist ein Fehler aufgetreten';
 $messages['settings_delete_loading']	= 'L&ouml;sche CardDAV-Server Einstellungen und dazugeh&ouml;rige lokale Kontakte';

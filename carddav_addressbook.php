@@ -7,7 +7,7 @@
  * @copyright Graviox Studios
  * @since 12.09.2011
  * @link http://www.graviox.de
- * @version 0.2.4
+ * @version 0.2.5
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  *
  */

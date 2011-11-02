@@ -17,7 +17,7 @@ if (window.rcmail)
 			var input_username = rcube_find_object('_username');
 			var input_password = rcube_find_object('_password');
 			
-			if (input_label.value == '' || input_url.value == '' || input_username.value == '' || input_password.value == '')
+			if (input_label.value == '' || input_url.value == '')
 			{
 				rcmail.display_message(rcmail.gettext('settings_empty_values', 'carddav'), 'error');
 			}
@@ -25,7 +25,7 @@ if (window.rcmail)
 			{
 				rcmail.http_post(
 					'plugin.carddav-server-save',
-					'_label=' + input_label.value + '&_server_url=' + input_url.value + '&_username=' + input_username.value + '&_password=' + input_password.value,
+					'_label=' + $.base64Encode(input_label.value) + '&_server_url=' + $.base64Encode(input_url.value) + '&_username=' + $.base64Encode(input_username.value) + '&_password=' + $.base64Encode(input_password.value),
 					rcmail.display_message(rcmail.gettext('settings_init_server', 'carddav'), 'loading')
 				);
 			}
@@ -35,7 +35,7 @@ if (window.rcmail)
 		{
 			rcmail.http_post(
 				'plugin.carddav-server-delete',
-				'_carddav_server_id=' + carddav_server_id,
+				'_carddav_server_id=' + $.base64Encode(carddav_server_id),
 				rcmail.display_message(rcmail.gettext('settings_delete_loading', 'carddav'), 'loading')
 			);
 		}, true);

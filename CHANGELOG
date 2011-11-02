@@ -1,3 +1,9 @@
+changes from v0.2.4 to v0.2.5
+- bugfix: email and name can now be null
+- ajax POST contents are now base64 encoded
+- username and password can now be empty
+- minor localization changes
+
 changes from v0.2.3 to v0.2.4
 - bugfix: last_modified date is now STRING instead of INT
 - CardDAV-Backend class update to v0.4.2
