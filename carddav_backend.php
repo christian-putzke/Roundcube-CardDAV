@@ -66,7 +66,7 @@
  * @copyright Graviox Studios
  * @link http://www.graviox.de
  * @since 20.07.2011
- * @version 0.4.2
+ * @version 0.4.4
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  * 
  */
@@ -99,13 +99,13 @@ class carddav_backend
 	 * 
 	 * @var string
 	 */
-	protected $user_agent = 'CardDAV-PHP/0.4.2';
+	protected $user_agent = 'CardDAV-PHP/0.4.4';
 	
 	/**
 	 * constructor
 	 * set the CardDAV-Server url
 	 * 
-	 * @param string $url CardDAV-Server url
+	 * @param string CardDAV-Server url
 	 */
 	public function __construct($url = null)
 	{
@@ -118,7 +118,7 @@ class carddav_backend
 	/**
 	* set the CardDAV-Server url
 	*
-	* @param string $url CardDAV-Server url
+	* @param string CardDAV-Server url
 	*/
 	public function set_url($url)
 	{
@@ -128,8 +128,8 @@ class carddav_backend
 	/**
 	 * set authentification information
 	 * 
-	 * @param string $username CardDAV-Server username
-	 * @param string $password CardDAV-Server password
+	 * @param string CardDAV-Server username
+	 * @param string CardDAV-Server password
 	 */
 	public function set_auth($username, $password)
 	{
@@ -139,8 +139,8 @@ class carddav_backend
 	/**
 	 * get propfind xml-response from the CardDAV-Server
 	 * 
-	 * @param boolean $include_vcards include vCards in the response (simplified only)
-	 * @param boolean $raw get response raw or simplified
+	 * @param boolean include vCards in the response (simplified only)
+	 * @param boolean get response raw or simplified
 	 * @return string raw or simplified xml response
 	 */
 	public function get($include_vcards = true, $raw = false)
@@ -160,7 +160,7 @@ class carddav_backend
 	/**
 	 * get a vCard from the CardDAV-Server
 	 * 
-	 * @param string $id vCard id on the CardDAV-Server
+	 * @param string vCard id on the CardDAV-Server
 	 * @return string vCard (text/vcard)
 	 */
 	public function get_vcard($vcard_id)
@@ -191,7 +191,7 @@ class carddav_backend
 	/**
 	 * deletes an entry from the CardDAV-Server
 	 * 
-	 * @param string $id vCard id on the CardDAV-Server
+	 * @param string vCard id on the CardDAV-Server
 	 * @return string CardDAV xml-response
 	 */
 	public function delete($vcard_id)
@@ -202,8 +202,8 @@ class carddav_backend
 	/**
 	 * adds an entry to the CardDAV-Server
 	 *
-	 * @param string $vcard vCard
-	 * @param string $vcard_id vCard id on the CardDAV-Server
+	 * @param string vCard
+	 * @param string vCard id on the CardDAV-Server
 	 * @return string CardDAV xml-response
 	 */
 	public function add($vcard, $vcard_id = null)
@@ -220,8 +220,8 @@ class carddav_backend
 	/**
 	 * updates an entry to the CardDAV-Server
 	 *
-	 * @param string $vcard vCard
-	 * @param string $id vCard id on the CardDAV-Server
+	 * @param string vCard
+	 * @param string vCard id on the CardDAV-Server
 	 * @return string CardDAV xml-response
 	 */
 	public function update($vcard, $vcard_id)
@@ -233,7 +233,7 @@ class carddav_backend
 	/**
 	 * simplify CardDAV xml-response
 	 *
-	 * @param string $response CardDAV xml-response
+	 * @param string CardDAV xml-response
 	 * @return string simplified CardDAV xml-response
 	 */
 	private function simplify($response, $include_vcards = true)
@@ -241,7 +241,7 @@ class carddav_backend
 		$response = $this->clean_response($response);
 		
 		$xml = new SimpleXMLElement($response);
-		
+
 		$simplified_xml = new XMLWriter();
 		$simplified_xml->openMemory();
 		$simplified_xml->setIndent(4);
@@ -251,11 +251,11 @@ class carddav_backend
 			
 				foreach ($xml->response as $response)
 				{
-					if (preg_match('/vcard/', $response->propstat->prop->getcontenttype))
+					if (preg_match('/vcard/', $response->propstat->prop->getcontenttype) || preg_match('/vcf/', $response->href))
 					{
 						$id = basename($response->href);
 						$id = str_replace('.vcf', null, $id);
-	
+						
 						if (!empty($id))
 						{
 							$simplified_xml->startElement('element');
@@ -272,7 +272,7 @@ class carddav_backend
 						}
 					}
 				}
-			
+				
 			$simplified_xml->endElement();
 		$simplified_xml->endDocument();
 		
@@ -282,12 +282,13 @@ class carddav_backend
 	/**
 	 * cleans CardDAV xml-response
 	 * 
-	 * @param string $response CardDAV xml-response
-	 * @return string $response cleaned CardDAV xml-response
+	 * @param string CardDAV xml-response
+	 * @return string cleaned CardDAV xml-response
 	 */
 	private function clean_response($response)
 	{
 		$response = str_replace('D:', null, $response);
+		$response = str_replace('d:', null, $response);
 		
 		return $response;
 	}
@@ -295,9 +296,9 @@ class carddav_backend
 	/**
 	 * quries the CardDAV-Server via curl and returns the response
 	 * 
-	 * @param string $method HTTP-Method like (OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, COPY, MOVE)
-	 * @param string $content content for CardDAV-Queries
-	 * @param string $content_type set content-type
+	 * @param string HTTP-Method like (OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, COPY, MOVE)
+	 * @param string for CardDAV-Queries
+	 * @param string set content-type
 	 * @return string CardDAV xml-response
 	 */
 	private function query($url, $method, $content = null, $content_type = null)

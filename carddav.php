@@ -1,6 +1,8 @@
 <?php
 
-// include required CardDAV classes
+/**
+ * include required CardDAV classes
+ */
 require_once dirname(__FILE__).'/carddav_backend.php';
 require_once dirname(__FILE__).'/carddav_addressbook.php';
 
@@ -16,14 +18,14 @@ require_once dirname(__FILE__).'/carddav_addressbook.php';
  * @copyright Graviox Studios
  * @link http://www.graviox.de
  * @since 06.09.2011
- * @version 0.2.5
+ * @version 0.3
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  *
  */
 class carddav extends rcube_plugin
 {
 	/**
-	 * tasks where CardDAV-Plugin is loaded (pipe separated)
+	 * tasks where CardDAV-Plugin is loaded
 	 * 
 	 * @var string
 	 */
@@ -45,8 +47,6 @@ class carddav extends rcube_plugin
 	
 	/**
 	 * init CardDAV-Plugins - register actions, include scripts, load texts, add hooks
-	 * 
-	 * @see rcube_plugin::init()
 	 */
 	public function init()
 	{
@@ -111,10 +111,10 @@ class carddav extends rcube_plugin
 	/**
 	 * get all CardDAV-Servers from the current user
 	 * 
-	 * @param boolean $carddav_server_id CardDAV-Server id to load a single CardDAV-Server
-	 * @return array $servers CardDAV-Server array with label, url, username, password (encrypted)
+	 * @param boolean CardDAV-Server id to load a single CardDAV-Server
+	 * @return array CardDAV-Server array with label, url, username, password (encrypted)
 	 */
-	protected function get_carddav_server($carddav_server_id = false)
+	public function get_carddav_server($carddav_server_id = false)
 	{
 		$servers = array();
 		$rcmail = rcmail::get_instance();
@@ -143,7 +143,7 @@ class carddav extends rcube_plugin
 	/**
 	* render available CardDAV-Server list in HTML
 	*
-	* @return string $output HTML rendered CardDAV-Server list
+	* @return string HTML rendered CardDAV-Server list
 	*/
 	protected function get_carddav_server_list()
 	{
@@ -196,8 +196,8 @@ class carddav extends rcube_plugin
 	/**
 	 * get CardDAV-Addressbook instance
 	 * 
-	 * @param array $addressbook array with all available addressbooks
-	 * @return array $addressbook array with all available addressbooks
+	 * @param array array with all available addressbooks
+	 * @return array array with all available addressbooks
 	 */
 	public function get_carddav_addressbook($addressbook)
 	{
@@ -212,8 +212,8 @@ class carddav extends rcube_plugin
 	/**
 	 * get CardDAV-Addressbook source
 	 * 
-	 * @param array $addressbook array with all available addressbooks sources
-	 * @return array $addressbook array with all available addressbooks sources
+	 * @param array array with all available addressbooks sources
+	 * @return array array with all available addressbooks sources
 	 */
 	public function carddav_addressbook_sources($addressbook)
 	{
@@ -232,7 +232,7 @@ class carddav extends rcube_plugin
 	/**
 	 * synchronize CardDAV addressbook
 	 * 
-	 * @param boolean $carddav_server_id CardDAV-Server id to synchronize a single CardDAV-Server
+	 * @param boolean CardDAV-Server id to synchronize a single CardDAV-Server
 	 */
 	public function carddav_addressbook_sync($carddav_server_id = false, $ajax = true)
 	{
@@ -305,8 +305,7 @@ class carddav extends rcube_plugin
 	/**
 	 * check if it's possible to connect to the CardDAV-Server
 	 * 
-	 * @see carddav_backend::check_connection()
-	 * @return boolean $carddav_backend->check_connection()
+	 * @return boolean
 	 */
 	public function carddav_server_check_connection()
 	{

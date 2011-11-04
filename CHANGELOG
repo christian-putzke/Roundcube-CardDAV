@@ -1,3 +1,11 @@
+changes from v0.2.4 to v0.3
+- added edit and delete funtionaltiy for CardDAV-Contacts
+- added sabreDAV support
+- extended addessbook search
+- restructured and cleaned carddav_addressbook class
+- CardDAV-Backend class update to v0.4.4
+- added postgreSQL and SQLite support
+
 changes from v0.2.4 to v0.2.5
 - bugfix: email and name can now be null
 - ajax POST contents are now base64 encoded
@@ -21,7 +29,7 @@ changes from 0.2.1 to 0.2.2
 
 changes from 0.2 to 0.2.1
 - show CardDAV-Contacts list (addressbook pagination) bugfix
-- autocomplete CardDAV-Contacts Groups bugfix
+- autocomplete CardDAV-Contacts groups bugfix
 - CardDAV-Groups will now be displayed correctly in the CardDAV-Contact detail view
 - hide CardDAV-Contacts sync button if no CardDAV-Servers were added
 - fallback skin path added "skins/default"
