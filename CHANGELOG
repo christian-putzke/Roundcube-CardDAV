@@ -1,10 +1,12 @@
 changes from v0.2.4 to v0.3
-- added edit and delete funtionaltiy for CardDAV-Contacts
+- added edit and delete functionality for CardDAV-Contacts
 - added sabreDAV support
-- extended addessbook search
+- added ownCloud support
+- extended addressbook search
 - restructured and cleaned carddav_addressbook class
 - CardDAV-Backend class update to v0.4.4
 - added postgreSQL and SQLite support
+- minor improvements
 
 changes from v0.2.4 to v0.2.5
 - bugfix: email and name can now be null
@@ -17,7 +19,7 @@ changes from v0.2.3 to v0.2.4
 - CardDAV-Backend class update to v0.4.2
 
 changes from v0.2.2 to v0.2.3
-- added meetoo support
+- added memotoo support
 - CardDAV-Backend class update to v0.4.1
 - added addressbook search functionality
 - changed version naming
