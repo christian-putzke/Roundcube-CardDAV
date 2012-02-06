@@ -6,7 +6,7 @@ changes from v0.2.4 to v0.3
 - restructured and cleaned carddav_addressbook class
 - CardDAV-Backend class update to v0.4.4
 - added postgreSQL and SQLite support
-- minor improvements
+- minor improvements (CURL install check, usability improvements, ...)
 
 changes from v0.2.4 to v0.2.5
 - bugfix: email and name can now be null

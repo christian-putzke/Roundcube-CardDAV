@@ -326,55 +326,66 @@ class carddav extends rcube_plugin
 	public function carddav_server_form()
 	{
 		$rcmail = rcmail::get_instance();
+
+		if ($this->check_curl_installed())
+		{
+			$input_label = new html_inputfield(array(
+				'name' => '_label',
+				'id' => '_label', 
+				'size' => '17'
+			));
+				
+			$input_server_url = new html_inputfield(array(
+				'name' => '_server_url',
+				'id' => '_server_url', 
+				'size' => '44'
+			));
+				
+			$input_username = new html_inputfield(array(
+				'name' => '_username',
+				'id' => '_username', 
+				'size' => '17'
+			));
+				
+			$input_password = new html_passwordfield(array(
+				'name' => '_password',
+				'id' => '_password', 
+				'size' => '17'
+			));
+				
+			$input_submit = $rcmail->output->button(array(
+				'command' => 'plugin.carddav-server-save',
+				'type' => 'input',
+				'class' => 'button mainaction',
+				'label' => 'save'
+			));
+	
+			$table = new html_table(array(
+				'cols' => 5,
+				'width' => '950'
+			));
+			
+			$table->add(array('class' => 'title', 'width' => '16%'), $this->gettext('settings_label'));
+			$table->add(array('class' => 'title', 'width' => '36%'), $this->gettext('server'));
+			$table->add(array('class' => 'title', 'width' => '16%'), $this->gettext('username'));
+			$table->add(array('class' => 'title', 'width' => '16%'), $this->gettext('password'));
+			$table->add(array('width' => '16%'), null);
+	
+			$table->add(null, $input_label->show());
+			$table->add(null, $input_server_url->show());
+			$table->add(null, $input_username->show());
+			$table->add(null, $input_password->show());
+			$table->add(null, $input_submit);
+		}
+		else
+		{
+			$table = new html_table(array(
+				'cols' => 1
+			));
+			
+			$table->add(array('class' => 'error'), $this->gettext('settings_curl_not_installed'));
+		}
 		
-		$input_label = new html_inputfield(array(
-			'name' => '_label',
-			'id' => '_label', 
-			'size' => '17'
-		));
-			
-		$input_server_url = new html_inputfield(array(
-			'name' => '_server_url',
-			'id' => '_server_url', 
-			'size' => '44'
-		));
-			
-		$input_username = new html_inputfield(array(
-			'name' => '_username',
-			'id' => '_username', 
-			'size' => '17'
-		));
-			
-		$input_password = new html_passwordfield(array(
-			'name' => '_password',
-			'id' => '_password', 
-			'size' => '17'
-		));
-			
-		$input_submit = $rcmail->output->button(array(
-			'command' => 'plugin.carddav-server-save',
-			'type' => 'input',
-			'class' => 'button mainaction',
-			'label' => 'save'
-		));
-
-		$table = new html_table(array(
-			'cols' => 5,
-			'width' => '950'
-		));
-		
-		$table->add(array('class' => 'title', 'width' => '16%'), $this->gettext('settings_label'));
-		$table->add(array('class' => 'title', 'width' => '36%'), $this->gettext('server'));
-		$table->add(array('class' => 'title', 'width' => '16%'), $this->gettext('username'));
-		$table->add(array('class' => 'title', 'width' => '16%'), $this->gettext('password'));
-		$table->add(array('width' => '16%'), null);
-
-		$table->add(null, $input_label->show());
-		$table->add(null, $input_server_url->show());
-		$table->add(null, $input_username->show());
-		$table->add(null, $input_password->show());
-		$table->add(null, $input_submit);
-
 		$output = html::div(
 			array('class' => 'box'),
 			html::div(array('class' => 'boxtitle'), $this->gettext('settings')).
@@ -383,6 +394,23 @@ class carddav extends rcube_plugin
 		);
 		
 		return $output;
+	}
+
+	/**
+	 * check if curl is installed or not
+	 * 
+	 * @return boolean
+	 */
+	private function check_curl_installed()
+	{
+		if (function_exists('curl_init'))
+		{
+			return true;	
+		}
+		else
+		{
+			return false;
+		}
 	}
 	
 	/**
