@@ -1,12 +1,11 @@
-changes from v0.2.4 to v0.3
+changes from v0.2.5 to v0.3
 - added edit and delete functionality for CardDAV-Contacts
 - added sabreDAV support
 - added ownCloud support
-- extended addressbook search
-- restructured and cleaned carddav_addressbook class
-- CardDAV-Backend class update to v0.4.4
-- added postgreSQL and SQLite support
-- minor improvements (CURL install check, usability improvements, ...)
+- CardDAV-Backend class update to v0.4.6
+- restructured and cleaned carddav_addressbook class (not completly done yet)
+- minor improvements (CURL install check, usability improvements, sync don't add empty vcards now, ...)
+- added IT and FR language files
 
 changes from v0.2.4 to v0.2.5
 - bugfix: email and name can now be null

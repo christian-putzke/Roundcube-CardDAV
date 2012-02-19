@@ -9,7 +9,8 @@ Features
 * CardDAV-Contacts are stored in the local database which provides great performance
 * tested CardDAV-Servers: davical, apple addressbook server, meetoo, sabreDAV, owncloud
 * read / add / delete / edit CardDAV-Contacts (partly implemented - read / edit / delete)
-* search for contacts in the addressbook
+* autocomplete all CardDAV-Contacts within the compose email view
+* search for all CardDAV-Contacts within the addressbook
 
 
 Planned Features
@@ -17,14 +18,20 @@ Planned Features
 * automaticly synchronized CardDAV-Contacts
 * 2-way synchronization
 * add CardDAV-Contacts
+* improved search for CardDAV-Contacts within the addressbook
 
 
 Installation
 ------------
-* execute SQL-Statements from /plugins/carddav/SQL/
+* execute SQL-Statements from /plugins/carddav/SQL/mysql.sql
 * add 'carddav' to the plugins-array in /config/main.inc.php
 * copy /plugins/carddav/config.inc.php.dist to /plugins/carddav/config.inc.php
 * login into your roundcube webmail and add your CardDAV-Server in the settings
+
+
+Update
+------
+* execute new SQL-Statements from /plugins/carddav/SQL/mysql.update.sql
 
 
 Contact

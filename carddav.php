@@ -203,10 +203,27 @@ class carddav extends rcube_plugin
 	{
 		if ($addressbook['id'] === $this->carddav_addressbook_id)
 		{
-			$addressbook['instance'] = new carddav_addressbook($this->carddav_addressbook_label, $this->get_carddav_server());
+			$addressbook['instance'] = new carddav_addressbook($this->carddav_addressbook_label);
 		}
 		
 		return $addressbook;
+	}
+	
+	/**
+	 * check if curl is installed or not
+	 * 
+	 * @return boolean
+	 */
+	private function check_curl_installed()
+	{
+		if (function_exists('curl_init'))
+		{
+			return true;	
+		}
+		else
+		{
+			return false;
+		}
 	}
 	
 	/**
@@ -236,7 +253,7 @@ class carddav extends rcube_plugin
 	 */
 	public function carddav_addressbook_sync($carddav_server_id = false, $ajax = true)
 	{
-		$carddav_addressbook = new carddav_addressbook(null, $this->get_carddav_server($carddav_server_id));
+		$carddav_addressbook = new carddav_addressbook(null, $carddav_server_id);
 		$result = $carddav_addressbook->carddav_addressbook_sync();
 		
 		if ($ajax === true)
@@ -322,10 +339,13 @@ class carddav extends rcube_plugin
 
 	/**
 	 * render CardDAV-Server settings formular and register javascript actions
+	 * 
+	 * @return string HTML CardDAV-Server formular
 	 */
 	public function carddav_server_form()
 	{
 		$rcmail = rcmail::get_instance();
+		$boxcontent = null;
 
 		if ($this->check_curl_installed())
 		{
@@ -376,43 +396,24 @@ class carddav extends rcube_plugin
 			$table->add(null, $input_username->show());
 			$table->add(null, $input_password->show());
 			$table->add(null, $input_submit);
+			
+			$boxcontent = $table->show();
 		}
 		else
 		{
-			$table = new html_table(array(
-				'cols' => 1
-			));
-			
-			$table->add(array('class' => 'error'), $this->gettext('settings_curl_not_installed'));
+			$rcmail->output->show_message($this->gettext('settings_curl_not_installed'), 'error');
 		}
 		
 		$output = html::div(
 			array('class' => 'box'),
 			html::div(array('class' => 'boxtitle'), $this->gettext('settings')).
 			html::div(array('class' => 'boxcontent', 'id' => 'carddav_server_list'), $this->get_carddav_server_list()).
-			html::div(array('class' => 'boxcontent'), $table->show())
+			html::div(array('class' => 'boxcontent'), $boxcontent)
 		);
 		
 		return $output;
 	}
 
-	/**
-	 * check if curl is installed or not
-	 * 
-	 * @return boolean
-	 */
-	private function check_curl_installed()
-	{
-		if (function_exists('curl_init'))
-		{
-			return true;	
-		}
-		else
-		{
-			return false;
-		}
-	}
-	
 	/**
 	 * save CardDAV-Server and execute first CardDAV-Contact sync
 	 */
