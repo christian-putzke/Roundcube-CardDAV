@@ -21,6 +21,12 @@ Planned Features
 * improved search for CardDAV-Contacts within the addressbook
 
 
+Requirements
+------------
+* SQL-Database
+* CURL
+
+
 Installation
 ------------
 * execute SQL-Statements from /plugins/carddav/SQL/mysql.sql
