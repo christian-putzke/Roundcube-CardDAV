@@ -1,3 +1,6 @@
+v0.3 to v0.3.1
+- bugfix: didn't merged vCards on edit correctly
+
 changes from v0.2.5 to v0.3
 - added edit and delete functionality for CardDAV-Contacts
 - added sabreDAV support

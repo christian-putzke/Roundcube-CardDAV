@@ -7,7 +7,7 @@
  * @copyright Graviox Studios
  * @since 12.09.2011
  * @link http://www.graviox.de
- * @version 0.3
+ * @version 0.3.1
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  *
  */
@@ -927,7 +927,9 @@ class carddav_addressbook extends rcube_addressbook
 	 */
 	public function update($carddav_contact_id, $save_data)
 	{
+		$record = $this->get_record($carddav_contact_id, true);
 		$database_column_contents = $this->get_database_column_contents($save_data, $record);
+
 		return $this->carddav_update($carddav_contact_id, $database_column_contents['vcard']);
 	}
 
