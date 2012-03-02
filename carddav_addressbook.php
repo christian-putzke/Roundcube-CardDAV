@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Roundcube CardDAV addressbook extension
+ * Roundcube CardDAV-Addressbook extension
  *
  * @author Christian Putzke <christian.putzke@graviox.de>
  * @copyright Graviox Studios
@@ -32,7 +32,7 @@ class carddav_addressbook extends rcube_addressbook
 	 *
 	 * @var boolean
 	 */
-	public $groups = true;
+	public $groups = false;
 
 	/**
 	 * internal addressbook group id
@@ -63,7 +63,7 @@ class carddav_addressbook extends rcube_addressbook
 	private $name;
 
 	/**
-	* CardDAV-Server id (just to limit carddav::get_carddav_server calls to one CardDAV-Server)
+	* CardDAV-Server id
 	*
 	* @var mixed
 	*/
@@ -108,7 +108,7 @@ class carddav_addressbook extends rcube_addressbook
 	 * @param string translated addressbook name
 	 * @param integer CardDAV-Server id
 	 */
-	public function __construct($name = null, $carddav_server_id = false)
+	public function __construct($carddav_server_id, $name)
 	{
 		$this->ready = true;
 		$this->name = $name;
@@ -132,7 +132,7 @@ class carddav_addressbook extends rcube_addressbook
 	 * @param array limits (start, length)
 	 * @return array CardDAV-Adressbook contacts
 	 */
-	private function get_carddav_addressbook_contacts($carddav_server_id = null, $limit = array())
+	private function get_carddav_addressbook_contacts($limit = array())
 	{
 		$rcmail = rcmail::get_instance();
 		$carddav_addressbook_contacts = array();
@@ -144,7 +144,8 @@ class carddav_addressbook extends rcube_addressbook
 				".get_table_name('carddav_contacts')."
 			WHERE
 				user_id = ?
-				".($carddav_server_id !== null ? "AND carddav_server_id = ?" : null)."
+			AND
+				carddav_server_id = ?
 				".$this->get_search_set()."
 			ORDER BY
 				name ASC
@@ -152,11 +153,11 @@ class carddav_addressbook extends rcube_addressbook
 
 		if (empty($limit))
 		{
-			$result = $rcmail->db->query($query, $rcmail->user->data['user_id'], $carddav_server_id);
+			$result = $rcmail->db->query($query, $rcmail->user->data['user_id'], $this->carddav_server_id);
 		}
 		else
 		{
-			$result = $rcmail->db->limitquery($query, $limit['start'], $limit['length'], $rcmail->user->data['user_id'], $carddav_server_id);
+			$result = $rcmail->db->limitquery($query, $limit['start'], $limit['length'], $rcmail->user->data['user_id'], $this->carddav_server_id);
 		}
 
 		if ($rcmail->db->num_rows($result))
@@ -207,7 +208,7 @@ class carddav_addressbook extends rcube_addressbook
 	* @param integer CardDAV-Server id
 	* @return integer count CardDAV-Contacts
 	*/
-	private function get_carddav_addressbook_contacts_count($carddav_server_id = null)
+	private function get_carddav_addressbook_contacts_count()
 	{
 		$rcmail = rcmail::get_instance();
 
@@ -218,68 +219,23 @@ class carddav_addressbook extends rcube_addressbook
 				".get_table_name('carddav_contacts')."
 			WHERE
 				user_id = ?
-				".($carddav_server_id !== null ? "AND carddav_server_id = ?" : null)."
+			AND
+				carddav_server_id = ?
 				".$this->get_search_set()."
 			ORDER BY
 				name ASC
 		";
 
-		$result = $rcmail->db->query($query, $rcmail->user->data['user_id'], $carddav_server_id);
+		$result = $rcmail->db->query($query, $rcmail->user->data['user_id'], $this->carddav_server_id);
 
 		return $rcmail->db->num_rows($result);
 	}
 
 	/**
-	* get group assignments of a specific CardDAV-Contact
-	*
-	* @param integer CardDAV-Contact id
-	* @return array list of assigned groups
-	*/
-	public function get_record_groups($carddav_contact_id)
-	{
-		$groups = array();
-
-		if ($this->groups === true)
-		{
-			$rcmail = rcmail::get_instance();
-
-			$query = "
-				SELECT
-					carddav_server_id, label
-				FROM
-					".get_table_name('carddav_server')."
-				WHERE
-					user_id = ?
-				AND
-					carddav_server_id = (
-						SELECT
-							carddav_server_id
-						FROM
-							".get_table_name('carddav_contacts')."
-						WHERE
-							carddav_contact_id = ?
-					)
-			";
-
-			$result = $rcmail->db->query($query, $rcmail->user->data['user_id'], $carddav_contact_id);
-
-			if ($rcmail->db->num_rows())
-			{
-				while ($group = $rcmail->db->fetch_assoc($result))
-				{
-					$groups['CardDAV_'.$group['carddav_server_id']] = $group['label'];
-				}
-			}
-		}
-
-		return $groups;
-	}
-
-	/**
 	 * get result set
 	 *
-	* @return rcube_result_set result set
-	*/
+	 * @return rcube_result_set result set
+	 */
 	public function get_result()
 	{
 		return $this->result;
@@ -393,84 +349,78 @@ class carddav_addressbook extends rcube_addressbook
 	}
 
 	/**
-	 * synchronize CardDAV addressbook
+	 * synchronize CardDAV-Addressbook
 	 *
+	 * @param array CardDAV-Server parameter
 	 * @return boolean if no error occurred (true) else (false)
 	 */
-	public function carddav_addressbook_sync()
+	public function carddav_addressbook_sync($server)
 	{
 		$rcmail = rcmail::get_instance();
-		$servers = carddav::get_carddav_server($this->carddav_server_id);
 
-		if (!empty($servers))
+		$carddav_backend = new carddav_backend($server['url']);
+		$carddav_backend->set_auth($server['username'], $rcmail->decrypt($server['password']));
+
+		if ($carddav_backend->check_connection())
 		{
-			foreach ($servers as $server)
+			$elements = $carddav_backend->get(false);
+			$carddav_addressbook_contacts = $this->get_carddav_addressbook_contacts();
+
+			$xml = new SimpleXMLElement($elements);
+
+			if (!empty($xml->element))
 			{
-				$carddav_backend = new carddav_backend($server['url']);
-				$carddav_backend->set_auth($server['username'], $rcmail->decrypt($server['password']));
-
-				if ($carddav_backend->check_connection())
+				foreach ($xml->element as $element)
 				{
-					$elements = $carddav_backend->get(false);
-					$carddav_addressbook_contacts = $this->get_carddav_addressbook_contacts($server['carddav_server_id']);
+					$element_id = (string) $element->id;
+					$element_etag = (string) $element->etag;
+					$element_last_modified = (string) $element->last_modified;
 
-					$xml = new SimpleXMLElement($elements);
-
-					if (!empty($xml->element))
+					if (isset($carddav_addressbook_contacts[$element_id]))
 					{
-						foreach ($xml->element as $element)
+						if ($carddav_addressbook_contacts[$element_id]['etag'] != $element_etag ||
+							$carddav_addressbook_contacts[$element_id]['last_modified'] != $element_last_modified)
 						{
-							$element_id = (string) $element->id;
-							$element_etag = (string) $element->etag;
-							$element_last_modified = (string) $element->last_modified;
+							$carddav_content = array(
+								'vcard' => $carddav_backend->get_vcard($element_id),
+								'vcard_id' => $element_id,
+								'etag' => $element_etag,
+								'last_modified' => $element_last_modified
+							);
 
-							if (isset($carddav_addressbook_contacts[$element_id]))
-							{
-								if ($carddav_addressbook_contacts[$element_id]['etag'] != $element_etag ||
-									$carddav_addressbook_contacts[$element_id]['last_modified'] != $element_last_modified)
-								{
-									$carddav_content = array(
-										'vcard' => $carddav_backend->get_vcard($element_id),
-										'vcard_id' => $element_id,
-										'etag' => $element_etag,
-										'last_modified' => $element_last_modified
-									);
-
-									$this->carddav_addressbook_update($server['carddav_server_id'], $carddav_content);
-								}
-							}
-							else
-							{
-								$carddav_content = array(
-									'vcard' => $carddav_backend->get_vcard($element_id),
-									'vcard_id' => $element_id,
-									'etag' => $element_etag,
-									'last_modified' => $element_last_modified
-								);
-
-								if (!empty($carddav_content['vcard']))
-								{
-									$this->carddav_addressbook_add($server['carddav_server_id'], $carddav_content);
-								}
-							}
-
-							unset($carddav_addressbook_contacts[$element_id]);
-						}
-
-						if (!empty($carddav_addressbook_contacts))
-						{
-							foreach ($carddav_addressbook_contacts as $vcard_id => $etag)
-							{
-								$this->carddav_addressbook_delete($server['carddav_server_id'], $vcard_id);
-							}
+							$this->carddav_addressbook_update($carddav_content);
 						}
 					}
+					else
+					{
+						$carddav_content = array(
+							'vcard' => $carddav_backend->get_vcard($element_id),
+							'vcard_id' => $element_id,
+							'etag' => $element_etag,
+							'last_modified' => $element_last_modified
+						);
+
+						if (!empty($carddav_content['vcard']))
+						{
+							$this->carddav_addressbook_add($carddav_content);
+						}
+					}
+
+					unset($carddav_addressbook_contacts[$element_id]);
 				}
-				else
+
+				if (!empty($carddav_addressbook_contacts))
 				{
-					return false;
+					foreach ($carddav_addressbook_contacts as $vcard_id => $etag)
+					{
+						$this->carddav_addressbook_delete($vcard_id);
+					}
 				}
 			}
+		}
+		else
+		{
+			return false;
 		}
 
 		return true;
@@ -480,47 +430,32 @@ class carddav_addressbook extends rcube_addressbook
 	/**
 	 * synchronize CardDAV contact
 	 *
+	 * @param array CardDAV-Server parameter
 	 * @param integer CardDAV contact id
 	 * @param string vCard id
 	 * @return boolean if no error occurred (true) else (false)
 	 */
-	public function carddav_contact_sync($carddav_contact_id, $vcard_id)
+	public function carddav_contact_sync($server, $carddav_contact_id, $vcard_id)
 	{
 		$rcmail = rcmail::get_instance();
-		$server = current(carddav::get_carddav_server($this->carddav_server_id));
+		$carddav_backend = new carddav_backend($server['url']);
+		$carddav_backend->set_auth($server['username'], $rcmail->decrypt($server['password']));
 
-		if (!empty($server))
+		if ($carddav_backend->check_connection())
 		{
-			$carddav_backend = new carddav_backend($server['url']);
-			$carddav_backend->set_auth($server['username'], $rcmail->decrypt($server['password']));
+			$xml_vcard = $carddav_backend->get_xml_vcard($vcard_id);
+			$carddav_addressbook_contact = $this->get_carddav_addressbook_contact($carddav_contact_id);
 
-			if ($carddav_backend->check_connection())
+			$xml = new SimpleXMLElement($xml_vcard);
+
+			$element_id = (string) $xml->element->id;
+			$element_etag = (string) $xml->element->etag;
+			$element_last_modified = (string) $xml->element->last_modified;
+
+			if ($carddav_addressbook_contact !== false && !empty($element_id))
 			{
-				$xml_vcard = $carddav_backend->get_xml_vcard($vcard_id);
-				$carddav_addressbook_contact = $this->get_carddav_addressbook_contact($carddav_contact_id);
-
-				$xml = new SimpleXMLElement($xml_vcard);
-
-				$element_id = (string) $xml->element->id;
-				$element_etag = (string) $xml->element->etag;
-				$element_last_modified = (string) $xml->element->last_modified;
-
-				if ($carddav_addressbook_contact !== false && !empty($element_id))
-				{
-					if ($carddav_addressbook_contact['etag'] != $element_etag ||
-						$carddav_addressbook_contact['last_modified'] != $element_last_modified)
-					{
-						$carddav_content = array(
-							'vcard' => $carddav_backend->get_vcard($element_id),
-							'vcard_id' => $element_id,
-							'etag' => $element_etag,
-							'last_modified' => $element_last_modified
-						);
-
-						$this->carddav_addressbook_update($server['carddav_server_id'], $carddav_content);
-					}
-				}
-				else if (!empty($element_id))
+				if ($carddav_addressbook_contact['etag'] != $element_etag ||
+					$carddav_addressbook_contact['last_modified'] != $element_last_modified)
 				{
 					$carddav_content = array(
 						'vcard' => $carddav_backend->get_vcard($element_id),
@@ -529,15 +464,26 @@ class carddav_addressbook extends rcube_addressbook
 						'last_modified' => $element_last_modified
 					);
 
-					if (!empty($carddav_content['vcard']))
-					{
-						$this->carddav_addressbook_add($server['carddav_server_id'], $carddav_content);
-					}
+					$this->carddav_addressbook_update($carddav_content);
 				}
-				else
+			}
+			else if (!empty($element_id))
+			{
+				$carddav_content = array(
+					'vcard' => $carddav_backend->get_vcard($element_id),
+					'vcard_id' => $element_id,
+					'etag' => $element_etag,
+					'last_modified' => $element_last_modified
+				);
+
+				if (!empty($carddav_content['vcard']))
 				{
-					$this->carddav_addressbook_delete($server['carddav_server_id'], $vcard_id);
+					$this->carddav_addressbook_add($carddav_content);
 				}
+			}
+			else
+			{
+				$this->carddav_addressbook_delete($vcard_id);
 			}
 		}
 		else
@@ -555,7 +501,7 @@ class carddav_addressbook extends rcube_addressbook
 	 * @param array CardDAV contents like vCard, vCard id, etag
 	 * @return boolean
 	 */
-	private function carddav_addressbook_add($carddav_server_id, $carddav_content)
+	private function carddav_addressbook_add($carddav_content)
 	{
 		$rcmail = rcmail::get_instance();
 		$vcard = new rcube_vcard($carddav_content['vcard']);
@@ -571,7 +517,7 @@ class carddav_addressbook extends rcube_addressbook
 
 		$result = $rcmail->db->query(
 			$query,
-			$carddav_server_id,
+			$this->carddav_server_id,
 			$rcmail->user->data['user_id'],
 			$carddav_content['etag'],
 			$carddav_content['last_modified'],
@@ -599,7 +545,7 @@ class carddav_addressbook extends rcube_addressbook
 	 * @param array CardDAV contents like vCard, vCard id, etag
 	 * @return boolean
 	 */
-	private function carddav_addressbook_update($carddav_server_id, $carddav_content)
+	private function carddav_addressbook_update($carddav_content)
 	{
 		$rcmail = rcmail::get_instance();
 		$vcard = new rcube_vcard($carddav_content['vcard']);
@@ -637,7 +583,7 @@ class carddav_addressbook extends rcube_addressbook
 			$database_column_contents['name'],
 			$database_column_contents['email'],
 			$carddav_content['vcard_id'],
-			$carddav_server_id,
+			$this->carddav_server_id,
 			$rcmail->user->data['user_id']
 		);
 
@@ -656,7 +602,7 @@ class carddav_addressbook extends rcube_addressbook
 	 * @param string vCard id
 	 * @return boolean
 	 */
-	private function carddav_addressbook_delete($carddav_server_id, $vcard_id)
+	private function carddav_addressbook_delete($vcard_id)
 	{
 		$rcmail = rcmail::get_instance();
 
@@ -671,7 +617,7 @@ class carddav_addressbook extends rcube_addressbook
 				user_id = ?
 		";
 
-		$result = $rcmail->db->query($query, $vcard_id, $carddav_server_id, $rcmail->user->data['user_id']);
+		$result = $rcmail->db->query($query, $vcard_id, $this->carddav_server_id, $rcmail->user->data['user_id']);
 
 		if ($rcmail->db->affected_rows($result))
 		{
@@ -695,16 +641,14 @@ class carddav_addressbook extends rcube_addressbook
 	{
 		$rcmail = rcmail::get_instance();
 		$contact = $this->get_carddav_addressbook_contact($carddav_contact_id);
-		$server = current(carddav::get_carddav_server($contact['carddav_server_id']));
-
+		$server = current(carddav::get_carddav_server($this->carddav_server_id));
 		$carddav_backend = new carddav_backend($server['url']);
 		$carddav_backend->set_auth($server['username'], $rcmail->decrypt($server['password']));
 
 		if ($carddav_backend->check_connection())
 		{
 			$carddav_backend->update($vcard, $contact['vcard_id']);
-			$carddav_addressbook = new carddav_addressbook(null, $contact['carddav_server_id']);
-			$carddav_addressbook->carddav_contact_sync($carddav_contact_id, $contact['vcard_id']);
+			$this->carddav_contact_sync($server, $carddav_contact_id, $contact['vcard_id']);
 
 			return true;
 		}
@@ -720,59 +664,31 @@ class carddav_addressbook extends rcube_addressbook
 	private function carddav_delete($carddav_contact_ids)
 	{
 		$rcmail = rcmail::get_instance();
-		$last_server_id = 0;
+		$server = current(carddav::get_carddav_server($this->carddav_server_id));
+		$carddav_backend = new carddav_backend($server['url']);
+		$carddav_backend->set_auth($server['username'], $rcmail->decrypt($server['password']));
 
-		foreach ($carddav_contact_ids as $carddav_contact_id)
+		if ($carddav_backend->check_connection())
 		{
-			$contact = $this->get_carddav_addressbook_contact($carddav_contact_id);
-
-			if ($last_server_id != $contact['carddav_server_id'])
+			foreach ($carddav_contact_ids as $carddav_contact_id)
 			{
-				$server = current(carddav::get_carddav_server($contact['carddav_server_id']));
-				$carddav_backend = new carddav_backend($server['url']);
-				$carddav_backend->set_auth($server['username'], $rcmail->decrypt($server['password']));
-				$carddav_addressbook = new carddav_addressbook(null, $contact['carddav_server_id']);
+				$contact = $this->get_carddav_addressbook_contact($carddav_contact_id);
+				$carddav_backend->delete($contact['vcard_id']);
+				$this->carddav_contact_sync($server, $carddav_contact_id, $contact['vcard_id']);
 			}
 
-			if (!$carddav_backend->check_connection())
-			{
-				return false;
-			}
-
-			$carddav_backend->delete($contact['vcard_id']);
-			$carddav_addressbook->carddav_contact_sync($carddav_contact_id, $contact['vcard_id']);
-			$last_server_id = $contact['carddav_server_id'];
+			return count($carddav_contact_ids);
 		}
 
-		return count($carddav_contact_ids);
+		return false;
 	}
 
 	/**
-	 * list CardDAV-Adressbooks
-	 *
-	 * @param string Optional search string to match group name
-	 * @return array list of CardDAV-Adressbooks
+	 * @see rcube_addressbook::list_groups()
 	 */
 	public function list_groups($search = null)
 	{
-		$groups = array();
-		$servers = carddav::get_carddav_server();
-
-		if (!empty($servers))
-		{
-			foreach ($servers as $server)
-			{
-				if ($search === null || preg_match('/'.strtolower($search).'/', strtolower($server['label'])))
-				{
-					$groups[] = array(
-						'ID' => 'CardDAV_'.$server['carddav_server_id'],
-						'name' => $server['label']
-					);
-				}
-			}
-		}
-
-		return $groups;
+		return false;
 	}
 
 	/**
@@ -783,13 +699,12 @@ class carddav_addressbook extends rcube_addressbook
 	public function list_records($columns = null, $subset = 0)
 	{
 		$this->result = $this->count();
-		$carddav_server_id = (isset($this->group_id) ? str_replace('CardDAV_', null, $this->group_id) : null);
 		$limit = array(
 			'start' => ($subset < 0 ? $this->result->first + $this->page_size + $subset : $this->result->first),
 			'length' => ($subset != 0 ? abs($subset) : $this->page_size)
 		);
 
-		$contacts = $this->get_carddav_addressbook_contacts($carddav_server_id, $limit);
+		$contacts = $this->get_carddav_addressbook_contacts($limit);
 
 		if (!empty($contacts))
 		{
@@ -874,10 +789,16 @@ class carddav_addressbook extends rcube_addressbook
 	 */
 	public function count()
 	{
-		$carddav_server_id = (isset($this->group_id) ? str_replace('CardDAV_', null, $this->group_id) : null);
-		$count = $this->get_carddav_addressbook_contacts_count($carddav_server_id);
-
+		$count = $this->get_carddav_addressbook_contacts_count();
 		return new rcube_result_set($count, ($this->list_page - 1) * $this->page_size);
+	}
+
+	/**
+	 * @see rcube_addressbook::get_record_groups()
+	 */
+	public function get_record_groups($id)
+	{
+		return false;
 	}
 
 	/**
@@ -998,7 +919,7 @@ class carddav_addressbook extends rcube_addressbook
 	 *
 	 * @param array   Record identifiers
 	 */
-	function delete($carddav_contact_ids, $force = true)
+	public function delete($carddav_contact_ids, $force = true)
 	{
 		if (!is_array($carddav_contact_ids))
 		{

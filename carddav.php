@@ -32,18 +32,11 @@ class carddav extends rcube_plugin
 	public $task = 'settings|addressbook|mail';
 
 	/**
-	 * CardDAV-Addressbook id
+	 * CardDAV-Addressbook
 	 *
 	 * @var string
 	 */
-	protected $carddav_addressbook_id = 'carddav_contacts';
-
-	/**
-	 * CardDAV-Addressbook localized label
-	 *
-	 * @var string
-	 */
-	protected $carddav_addressbook_label = null;
+	protected $carddav_addressbook = 'carddav_addressbook';
 
 	/**
 	 * init CardDAV-Plugins - register actions, include scripts, load texts, add hooks
@@ -52,7 +45,6 @@ class carddav extends rcube_plugin
 	{
 		$rcmail = rcmail::get_instance();
 		$this->add_texts('localization/', true);
-		$this->carddav_addressbook_label = $this->gettext('addressbook_contacts');
 
 		switch ($rcmail->task)
 		{
@@ -69,7 +61,7 @@ class carddav extends rcube_plugin
 				{
 					$this->register_action('plugin.carddav-addressbook-sync', array($this, 'carddav_addressbook_sync'));
 					$this->include_script('carddav_addressbook.js');
-					$this->add_hook('addressbooks_list', array($this, 'carddav_addressbook_sources'));
+					$this->add_hook('addressbooks_list', array($this, 'get_carddav_addressbook_sources'));
 					$this->add_hook('addressbook_get', array($this, 'get_carddav_addressbook'));
 
 					$skin_path = $this->local_skin_path();
@@ -93,15 +85,19 @@ class carddav extends rcube_plugin
 			case 'mail':
 				if ($this->carddav_server_available())
 				{
-					$this->add_hook('addressbooks_list', array($this, 'carddav_addressbook_sources'));
+					$this->add_hook('addressbooks_list', array($this, 'get_carddav_addressbook_sources'));
 					$this->add_hook('addressbook_get', array($this, 'get_carddav_addressbook'));
 
 					$sources = (array) $rcmail->config->get('autocomplete_addressbooks', array('sql'));
+					$servers = $this->get_carddav_server();
 
-					if (!in_array($this->carddav_addressbook_id, $sources))
+					foreach ($servers as $server)
 					{
-						$sources[] = $this->carddav_addressbook_id;
-						$rcmail->config->set('autocomplete_addressbooks', $sources);
+						if (!in_array($this->carddav_addressbook . $server['carddav_server_id'], $sources))
+						{
+							$sources[] = $this->carddav_addressbook . $server['carddav_server_id'];
+							$rcmail->config->set('autocomplete_addressbooks', $sources);
+						}
 					}
 				}
 			break;
@@ -201,9 +197,39 @@ class carddav extends rcube_plugin
 	 */
 	public function get_carddav_addressbook($addressbook)
 	{
-		if ($addressbook['id'] === $this->carddav_addressbook_id)
+		$servers = $this->get_carddav_server();
+
+		foreach ($servers as $server)
 		{
-			$addressbook['instance'] = new carddav_addressbook($this->carddav_addressbook_label);
+			if ($addressbook['id'] === $this->carddav_addressbook . $server['carddav_server_id'])
+			{
+				$addressbook['instance'] = new carddav_addressbook($server['carddav_server_id'], $server['label']);
+			}
+		}
+
+		return $addressbook;
+	}
+
+	/**
+	 * get CardDAV-Addressbook source
+	 *
+	 * @param array array with all available addressbooks sources
+	 * @return array array with all available addressbooks sources
+	 */
+	public function get_carddav_addressbook_sources($addressbook)
+	{
+		$servers = $this->get_carddav_server();
+
+		foreach ($servers as $server)
+		{
+			$carddav_addressbook = new carddav_addressbook($server['carddav_server_id'], $server['label']);
+
+			$addressbook['sources'][$this->carddav_addressbook . $server['carddav_server_id']] = array(
+				'id' => $this->carddav_addressbook . $server['carddav_server_id'],
+				'name' => $server['label'],
+				'readonly' => $carddav_addressbook->readonly,
+				'groups' => $carddav_addressbook->groups
+			);
 		}
 
 		return $addressbook;
@@ -227,34 +253,23 @@ class carddav extends rcube_plugin
 	}
 
 	/**
-	 * get CardDAV-Addressbook source
-	 *
-	 * @param array array with all available addressbooks sources
-	 * @return array array with all available addressbooks sources
-	 */
-	public function carddav_addressbook_sources($addressbook)
-	{
-		$carddav_addressbook = new carddav_addressbook($this->carddav_addressbook_label);
-
-		$addressbook['sources'][$this->carddav_addressbook_id] = array(
-			'id' => $this->carddav_addressbook_id,
-			'name' => $this->carddav_addressbook_label,
-			'readonly' => $carddav_addressbook->readonly,
-			'groups' => $carddav_addressbook->groups
-		);
-
-		return $addressbook;
-	}
-
-	/**
 	 * synchronize CardDAV addressbook
 	 *
 	 * @param boolean CardDAV-Server id to synchronize a single CardDAV-Server
+	 * @param boolean within a ajax request
 	 */
 	public function carddav_addressbook_sync($carddav_server_id = false, $ajax = true)
 	{
-		$carddav_addressbook = new carddav_addressbook(null, $carddav_server_id);
-		$result = $carddav_addressbook->carddav_addressbook_sync();
+		$servers = $this->get_carddav_server();
+
+		foreach ($servers as $server)
+		{
+			if ($carddav_server_id === false || $carddav_server_id == $server['carddav_server_id'])
+			{
+				$carddav_addressbook = new carddav_addressbook($server['carddav_server_id'], $server['label']);
+				$result = $carddav_addressbook->carddav_addressbook_sync($server);
+			}
+		}
 
 		if ($ajax === true)
 		{
