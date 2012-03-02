@@ -1,3 +1,9 @@
+v0.3.1 to v0.4
+- added add functionality for CardDAV-Contacts
+- changed license from LGPLv2 to AGPLv3
+- CardDAV-Backend class update to v0.4.8
+- add logging functions
+
 v0.3 to v0.3.1
 - bugfix: didn't merged vCards on edit correctly
 

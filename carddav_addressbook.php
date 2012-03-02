@@ -7,8 +7,8 @@
  * @copyright Graviox Studios
  * @since 12.09.2011
  * @link http://www.graviox.de
- * @version 0.3.1
- * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
+ * @version 0.4
+ * @license http://www.gnu.org/licenses/agpl.html GNU AGPL v3 or later
  *
  */
 class carddav_addressbook extends rcube_addressbook
@@ -219,6 +219,7 @@ class carddav_addressbook extends rcube_addressbook
 			WHERE
 				user_id = ?
 				".($carddav_server_id !== null ? "AND carddav_server_id = ?" : null)."
+				".$this->get_search_set()."
 			ORDER BY
 				name ASC
 		";
@@ -359,7 +360,7 @@ class carddav_addressbook extends rcube_addressbook
 		}
 		else
 		{
-			if (in_array($field, $this->table_cols))
+			if (in_array($fields, $this->table_cols))
 			{
 				$filter = " AND ".$rcmail->db->ilike($fields, '%'.$value.'%');
 			}
@@ -368,7 +369,6 @@ class carddav_addressbook extends rcube_addressbook
 				$filter = " AND ".$rcmail->db->ilike('words', '%'.$value.'%');
 			}
 		}
-
 		$this->set_search_set($filter);
 	}
 
@@ -919,6 +919,66 @@ class carddav_addressbook extends rcube_addressbook
 	{
 		 return false;
 	}
+
+    /**
+     * Create a new contact record
+     *
+     * @param array Associative array with save data
+     * @return integer|boolean The created record ID on success, False on error
+     */
+    function insert($save_data, $check=false)
+    {
+//    	$rcmail = rcmail::get_instance();
+//    	$carddav_server_id = (isset($this->group_id) ? str_replace('CardDAV_', null, $this->group_id) : null);
+//
+//    	if ($carddav_server_id === null)
+//    	{
+//    		$rcmail->output->show_message('please select at first the addressbook CardDAV-Group where you want to add the new contact', 'error');
+//    		return false;
+//    	}
+//
+//        if (!is_array($save_data))
+//            return false;
+//
+//        $insert_id = $existing = false;
+//
+//        if ($check) {
+//            foreach ($save_data as $col => $values) {
+//                if (strpos($col, 'email') === 0) {
+//                    foreach ((array)$values as $email) {
+//                        if ($existing = $this->search('email', $email, false, false))
+//                            break 2;
+//                    }
+//                }
+//            }
+//        }
+//
+//        $save_data = $this->convert_save_data($save_data);
+//        $a_insert_cols = $a_insert_values = array();
+//
+//        foreach ($save_data as $col => $value) {
+//            $a_insert_cols[]   = $this->db->quoteIdentifier($col);
+//            $a_insert_values[] = $this->db->quote($value);
+//        }
+//
+//        if (!$existing->count && !empty($a_insert_cols)) {
+//            $this->db->query(
+//                "INSERT INTO ".get_table_name($this->db_name).
+//                " (user_id, changed, del, ".join(', ', $a_insert_cols).")".
+//                " VALUES (".intval($this->user_id).", ".$this->db->now().", 0, ".join(', ', $a_insert_values).")"
+//            );
+//
+//            $insert_id = $this->db->insert_id($this->db_name);
+//        }
+//
+//        // also add the newly created contact to the active group
+//        if ($insert_id && $this->group_id)
+//            $this->add_to_group($this->group_id, $insert_id);
+//
+//        $this->cache = null;
+//
+//        return $insert_id;
+    }
 
 	/**
 	 *
