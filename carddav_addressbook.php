@@ -360,6 +360,8 @@ class carddav_addressbook extends rcube_addressbook
 	{
 		$rcmail = rcmail::get_instance();
 
+		carddav::write_log('starting CardDAV-Addressbook synchronization');
+
 		$carddav_backend = new carddav_backend($server['url']);
 		$carddav_backend->set_auth($server['username'], $rcmail->decrypt($server['password']));
 
@@ -422,6 +424,10 @@ class carddav_addressbook extends rcube_addressbook
 					unset($carddav_addressbook_contacts[$element_id]);
 				}
 			}
+			else
+			{
+				carddav::wirte_log('no XML-Element found!');
+			}
 
 			if (!empty($carddav_addressbook_contacts))
 			{
@@ -433,6 +439,7 @@ class carddav_addressbook extends rcube_addressbook
 		}
 		else
 		{
+			carddav::write_log('couldn\'t connect to the CardDAV-Server ' . $server['url']);
 			return false;
 		}
 

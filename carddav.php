@@ -25,6 +25,13 @@ require_once dirname(__FILE__).'/carddav_addressbook.php';
 class carddav extends rcube_plugin
 {
 	/**
+	 * Roundcube CardDAV Version
+	 *
+	 * @var constant
+	 */
+	const VERSION = '0.4';
+
+	/**
 	 * tasks where CardDAV-Plugin is loaded
 	 *
 	 * @var string
@@ -515,5 +522,13 @@ class carddav extends rcube_plugin
 				'check' => false
 			));
 		}
+	}
+
+	/**
+	 * extended write log with pre defined logfile name and add version before the message content
+	 */
+	public function write_log($message)
+	{
+		write_log('CardDAV', 'v' . self::VERSION . ' | ' . $message);
 	}
 }
