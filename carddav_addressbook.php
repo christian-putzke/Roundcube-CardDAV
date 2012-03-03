@@ -305,7 +305,7 @@ class carddav_addressbook extends rcube_addressbook
 
 			foreach ($fields as $field)
 			{
-				if (in_array($field, $this->table_cols))
+				if (in_array($field, $this->table_cols) || $fields == $this->primary_key)
 				{
 					$filter .= $rcmail->db->ilike($field, '%'.$value.'%')." OR ";
 				}
@@ -316,7 +316,7 @@ class carddav_addressbook extends rcube_addressbook
 		}
 		else
 		{
-			if (in_array($fields, $this->table_cols))
+			if (in_array($fields, $this->table_cols) || $fields == $this->primary_key)
 			{
 				$filter = " AND ".$rcmail->db->ilike($fields, '%'.$value.'%');
 			}
@@ -325,6 +325,7 @@ class carddav_addressbook extends rcube_addressbook
 				$filter = " AND ".$rcmail->db->ilike('words', '%'.$value.'%');
 			}
 		}
+
 		$this->set_search_set($filter);
 	}
 
@@ -370,13 +371,17 @@ class carddav_addressbook extends rcube_addressbook
 		{
 			self::write_log('Connected to the CardDAV-Server ' . $server['url']);
 
-			if ($carddav_contact_id !== false && $vcard_id !== false)
+			if ($vcard_id !== false)
 			{
 				$elements = $carddav_backend->get_xml_vcard($vcard_id);
-				$carddav_addressbook_contact = $this->get_carddav_addressbook_contact($carddav_contact_id);
-				$carddav_addressbook_contacts = array(
-					$carddav_addressbook_contact['vcard_id'] => $carddav_addressbook_contact
-				);
+
+				if ($carddav_contact_id !== false)
+				{
+					$carddav_addressbook_contact = $this->get_carddav_addressbook_contact($carddav_contact_id);
+					$carddav_addressbook_contacts = array(
+						$carddav_addressbook_contact['vcard_id'] => $carddav_addressbook_contact
+					);
+				}
 			}
 			else
 			{
@@ -627,8 +632,27 @@ class carddav_addressbook extends rcube_addressbook
 		}
 	}
 
-	private function carddav_add()
+	/**
+	 * adds a CardDAV-Server contact
+	 *
+	 * @param $vcard vCard
+	 */
+	private function carddav_add($vcard)
 	{
+		$rcmail = rcmail::get_instance();
+		$server = current(carddav::get_carddav_server($this->carddav_server_id));
+		$carddav_backend = new carddav_backend($server['url']);
+		$carddav_backend->set_auth($server['username'], $rcmail->decrypt($server['password']));
+
+		if ($carddav_backend->check_connection())
+		{
+			$carddav_backend->add($vcard);
+			$this->carddav_addressbook_sync($server, false, $carddav_backend->get_last_vcard_id());
+
+			return $rcmail->db->insert_id(get_table_name('carddav_contacts'));
+		}
+
+		return false;
 	}
 
 	/**
@@ -841,65 +865,41 @@ class carddav_addressbook extends rcube_addressbook
 		 return false;
 	}
 
-    /**
-     * Create a new contact record
-     *
-     * @param array Associative array with save data
-     * @return integer|boolean The created record ID on success, False on error
-     */
-    function insert($save_data, $check=false)
-    {
-//    	$rcmail = rcmail::get_instance();
-//    	$carddav_server_id = (isset($this->group_id) ? str_replace('CardDAV_', null, $this->group_id) : null);
-//
-//    	if ($carddav_server_id === null)
-//    	{
-//    		$rcmail->output->show_message('please select at first the addressbook CardDAV-Group where you want to add the new contact', 'error');
-//    		return false;
-//    	}
-//
-//        if (!is_array($save_data))
-//            return false;
-//
-//        $insert_id = $existing = false;
-//
-//        if ($check) {
-//            foreach ($save_data as $col => $values) {
-//                if (strpos($col, 'email') === 0) {
-//                    foreach ((array)$values as $email) {
-//                        if ($existing = $this->search('email', $email, false, false))
-//                            break 2;
-//                    }
-//                }
-//            }
-//        }
-//
-//        $save_data = $this->convert_save_data($save_data);
-//        $a_insert_cols = $a_insert_values = array();
-//
-//        foreach ($save_data as $col => $value) {
-//            $a_insert_cols[]   = $this->db->quoteIdentifier($col);
-//            $a_insert_values[] = $this->db->quote($value);
-//        }
-//
-//        if (!$existing->count && !empty($a_insert_cols)) {
-//            $this->db->query(
-//                "INSERT INTO ".get_table_name($this->db_name).
-//                " (user_id, changed, del, ".join(', ', $a_insert_cols).")".
-//                " VALUES (".intval($this->user_id).", ".$this->db->now().", 0, ".join(', ', $a_insert_values).")"
-//            );
-//
-//            $insert_id = $this->db->insert_id($this->db_name);
-//        }
-//
-//        // also add the newly created contact to the active group
-//        if ($insert_id && $this->group_id)
-//            $this->add_to_group($this->group_id, $insert_id);
-//
-//        $this->cache = null;
-//
-//        return $insert_id;
-    }
+	/**
+	 * Create a new contact record
+	 *
+	 * @param array Associative array with save data
+	 * @return integer|boolean The created record ID on success, False on error
+	 */
+	function insert($save_data, $check = false)
+	{
+		$rcmail = rcmail::get_instance();
+
+		if (!is_array($save_data))
+		{
+			return false;
+		}
+
+		if ($check !== false)
+		{
+			foreach ($save_data as $col => $values)
+			{
+				if (strpos($col, 'email') === 0)
+				{
+					foreach ((array)$values as $email)
+					{
+						if ($existing = $this->search('email', $email, false, false))
+						{
+							break 2;
+						}
+					}
+				}
+			}
+		}
+
+		$database_column_contents = $this->get_database_column_contents($save_data);
+		return $this->carddav_add($database_column_contents['vcard']);
+	}
 
 	/**
 	 *

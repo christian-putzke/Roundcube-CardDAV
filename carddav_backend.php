@@ -81,7 +81,7 @@
  * @copyright Graviox Studios
  * @link http://www.graviox.de
  * @since 20.07.2011
- * @version 0.4.8
+ * @version 0.4.9
  * @license http://www.gnu.org/licenses/agpl.html GNU AGPL v3 or later
  *
  */
@@ -93,7 +93,7 @@ class carddav_backend
 	 *
 	 * @var constant
 	 */
-	const VERSION = '0.4.8';
+	const VERSION = '0.4.9';
 
 	/**
 	 * user agent displayed in http requests
@@ -122,6 +122,13 @@ class carddav_backend
 	 * @var string
 	 */
 	private $auth = null;
+
+	/**
+	 * last used vCard id
+	 *
+	 * @var string
+	 */
+	private $vcard_id = null;
 
 	/**
 	* authentication: username
@@ -259,6 +266,16 @@ class carddav_backend
 	}
 
 	/**
+	 * get the last used vCard id
+	 *
+	 * @return string $vcard_id last vCard id
+	 */
+	public function get_last_vcard_id()
+	{
+		return $this->vcard_id;
+	}
+
+	/**
 	* checks if the CardDAV-Server is reachable
 	*
 	* @return boolean
@@ -278,6 +295,19 @@ class carddav_backend
 	}
 
 	/**
+	 * cleans the vCard
+	 *
+	 * @param string $vcard vCard
+	 * @return string $vcard vCard
+	 */
+	private function clean_vcard($vcard)
+	{
+		$vcard = str_replace("\t", null, $vcard);
+
+		return $vcard;
+	}
+
+	/**
 	 * deletes an entry from the CardDAV-Server
 	 *
 	 * @param string $id vCard id on the CardDAV-Server
@@ -285,6 +315,7 @@ class carddav_backend
 	 */
 	public function delete($vcard_id)
 	{
+		$this->vcard_id = $vcard_id;
 		return $this->query($this->url . $vcard_id . '.vcf', 'DELETE');
 	}
 
@@ -292,17 +323,14 @@ class carddav_backend
 	 * adds an entry to the CardDAV-Server
 	 *
 	 * @param string $vcard vCard
-	 * @param string $vcard_id vCard id on the CardDAV-Server
 	 * @return string CardDAV xml-response
 	 */
-	public function add($vcard, $vcard_id = null)
+	public function add($vcard)
 	{
-		if ($vcard_id === null)
-		{
-			$vcard_id = $this->generate_vcard_id();
-		}
+		$vcard_id = $this->generate_vcard_id();
+		$this->vcard_id = $vcard_id;
+		$vcard = $this->clean_vcard($vcard);
 
-		$vcard = str_replace("\t", null, $vcard);
 		return $this->query($this->url . $vcard_id . '.vcf', 'PUT', $vcard, 'text/vcard');
 	}
 
@@ -316,7 +344,10 @@ class carddav_backend
 	public function update($vcard, $vcard_id)
 	{
 		$vcard_id = str_replace('.vcf', null, $vcard_id);
-		return $this->add($vcard, $vcard_id);
+		$this->vcard_id = $vcard_id;
+		$vcard = $this->clean_vcard($vcard);
+
+		return $this->query($this->url . $vcard_id . '.vcf', 'PUT', $vcard, 'text/vcard');
 	}
 
 	/**
