@@ -8,7 +8,7 @@ Features
 * add multiple CardDAV-Server for each user
 * CardDAV-Contacts are stored in the local database which provides great performance
 * tested CardDAV-Servers: davical, apple addressbook server, meetoo, sabreDAV, owncloud
-* read / add / delete / edit CardDAV-Contacts (partly implemented - read / edit / delete)
+* read / add / delete / edit CardDAV-Contacts
 * autocomplete all CardDAV-Contacts within the compose email view
 * search for all CardDAV-Contacts within the addressbook
 
@@ -16,8 +16,6 @@ Features
 Planned Features
 ----------------
 * automaticly synchronized CardDAV-Contacts
-* 2-way synchronization
-* add CardDAV-Contacts
 * improved search for CardDAV-Contacts within the addressbook
 
 

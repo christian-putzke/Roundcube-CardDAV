@@ -1,3 +1,13 @@
+v0.3.1 to v0.4
+- added add-functionality for CardDAV-Contacts
+- added vCard import-functionality for CardDAV-Addressbooks
+- license change from LGPLv2 to AGPLv3
+- CardDAV-Backend class update to v0.4.9
+- added logging
+- each CardDAV-Server is now an own addressbook not a group of a global CardDAV-Addressbook like before
+- minor bugfixes
+- improved synchronization
+
 v0.3 to v0.3.1
 - bugfix: didn't merged vCards on edit correctly
 
