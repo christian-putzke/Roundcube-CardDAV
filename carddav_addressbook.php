@@ -1,13 +1,14 @@
 <?php
 
 /**
- * Roundcube CardDAV-Addressbook extension
+ * Roundcube CardDAV addressbook extension
  *
  * @author Christian Putzke <christian.putzke@graviox.de>
- * @copyright Graviox Studios
+ * @copyright Christian Putzke @ Graviox Studios
  * @since 12.09.2011
- * @link http://www.graviox.de
- * @version 0.4
+ * @link http://www.graviox.de/
+ * @link https://twitter.com/graviox/
+ * @version 0.5
  * @license http://www.gnu.org/licenses/agpl.html GNU AGPL v3 or later
  *
  */

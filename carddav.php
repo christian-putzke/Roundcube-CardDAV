@@ -1,7 +1,7 @@
 <?php
 
 /**
- * include required CardDAV classes
+ * Include required CardDAV classes
  */
 require_once dirname(__FILE__).'/carddav_backend.php';
 require_once dirname(__FILE__).'/carddav_addressbook.php';
@@ -10,43 +10,46 @@ require_once dirname(__FILE__).'/carddav_addressbook.php';
  * Roundcube CardDAV implementation
  *
  * This is a CardDAV implementation for roundcube 0.6 or higher. It allows every user to add
- * multiple CardDAV-Server in their settings. The CardDAV-Contacts will be synchronized
+ * multiple CardDAV server in their settings. The CardDAV contacts (vCards) will be synchronized
  * automaticly with their addressbook.
  *
- *
  * @author Christian Putzke <christian.putzke@graviox.de>
- * @copyright Graviox Studios
- * @link http://www.graviox.de
+ * @copyright Christian Putzke @ Graviox Studios
  * @since 06.09.2011
- * @version 0.4
+ * @link http://www.graviox.de/
+ * @link https://twitter.com/graviox/
+ * @version 0.5
  * @license http://www.gnu.org/licenses/agpl.html GNU AGPL v3 or later
  *
  */
+
 class carddav extends rcube_plugin
 {
 	/**
-	 * Roundcube CardDAV Version
+	 * Roundcube CardDAV version
 	 *
-	 * @var constant
+	 * @constant string
 	 */
-	const VERSION = '0.4';
+	const VERSION = '0.5';
 
 	/**
-	 * tasks where CardDAV-Plugin is loaded
+	 * Tasks where the CardDAV plugin is loaded
 	 *
 	 * @var string
 	 */
 	public $task = 'settings|addressbook|mail';
 
 	/**
-	 * CardDAV-Addressbook
+	 * CardDAV addressbook
 	 *
 	 * @var string
 	 */
 	protected $carddav_addressbook = 'carddav_addressbook';
 
 	/**
-	 * init CardDAV-Plugins - register actions, include scripts, load texts, add hooks
+	 * Init CardDAV plugin - register actions, include scripts, load texts, add hooks
+	 *
+	 * @return	void
 	 */
 	public function init()
 	{
@@ -112,16 +115,16 @@ class carddav extends rcube_plugin
 	}
 
 	/**
-	 * get all CardDAV-Servers from the current user
+	 * Get all CardDAV servers from the current user
 	 *
-	 * @param boolean CardDAV-Server id to load a single CardDAV-Server
-	 * @return array CardDAV-Server array with label, url, username, password (encrypted)
+	 * @param	boolean	$carddav_server_id	CardDAV server id to load a single CardDAV server
+	 * @return	array						CardDAV server array with label, url, username, password (encrypted)
 	 */
 	public function get_carddav_server($carddav_server_id = false)
 	{
-		$servers = array();
-		$rcmail = rcmail::get_instance();
-		$user_id = $rcmail->user->data['user_id'];
+		$servers	= array();
+		$rcmail		= rcmail::get_instance();
+		$user_id	= $rcmail->user->data['user_id'];
 
 		$query = "
 			SELECT
@@ -144,9 +147,9 @@ class carddav extends rcube_plugin
 	}
 
 	/**
-	* render available CardDAV-Server list in HTML
+	* Render available CardDAV server list in HTML
 	*
-	* @return string HTML rendered CardDAV-Server list
+	* @return	string	HTML rendered CardDAV server list
 	*/
 	protected function get_carddav_server_list()
 	{
@@ -154,8 +157,6 @@ class carddav extends rcube_plugin
 
 		if (!empty($servers))
 		{
-			$rcmail = rcmail::get_instance();
-
 			$table = new html_table(array(
 				'cols' => 5,
 				'width' => '950'
@@ -169,15 +170,7 @@ class carddav extends rcube_plugin
 
 			foreach ($servers as $server)
 			{
-				/* $rcmail->output->button() seems not to work in ajax requests
-				$delete_submit = $rcmail->output->button(array(
-					'command' => 'plugin.carddav-server-delete',
-					'prop' => $server['carddav_server_id'],
-					'type' => 'input',
-					'class' => 'button mainaction',
-					'label' => 'delete'
-				));*/
-
+				// $rcmail->output->button() seems not to work within ajax requests so we build the button manually
 				$delete_submit = '<input
 					type="button"
 					value="'.$this->gettext('delete').'"
@@ -185,22 +178,26 @@ class carddav extends rcube_plugin
 					class="button mainaction"
 				/>';
 
-				$table->add(null, $server['label']);
-				$table->add(null, $server['url']);
-				$table->add(null, $server['username']);
-				$table->add(null, '**********');
-				$table->add(null, $delete_submit);
+				$table->add(array(), $server['label']);
+				$table->add(array(), $server['url']);
+				$table->add(array(), $server['username']);
+				$table->add(array(), '**********');
+				$table->add(array(), $delete_submit);
 			}
 
 			return $table->show();
 		}
+		else
+		{
+			return null;
+		}
 	}
 
 	/**
-	 * get CardDAV-Addressbook instance
+	 * Get CardDAV addressbook instance
 	 *
-	 * @param array array with all available addressbooks
-	 * @return array array with all available addressbooks
+	 * @param	array	$addressbook	Array with all available addressbooks
+	 * @return	array 					Array with all available addressbooks
 	 */
 	public function get_carddav_addressbook($addressbook)
 	{
@@ -218,10 +215,10 @@ class carddav extends rcube_plugin
 	}
 
 	/**
-	 * get CardDAV-Addressbook source
+	 * Get CardDAV addressbook source
 	 *
-	 * @param array array with all available addressbooks sources
-	 * @return array array with all available addressbooks sources
+	 * @param	array	$addressbook	Array with all available addressbooks sources
+	 * @return	array					Array with all available addressbooks sources
 	 */
 	public function get_carddav_addressbook_sources($addressbook)
 	{
@@ -243,9 +240,9 @@ class carddav extends rcube_plugin
 	}
 
 	/**
-	 * check if curl is installed or not
+	 * Check if CURL is installed or not
 	 *
-	 * @return boolean
+	 * @return	boolean
 	 */
 	private function check_curl_installed()
 	{
@@ -260,14 +257,16 @@ class carddav extends rcube_plugin
 	}
 
 	/**
-	 * synchronize CardDAV addressbook
+	 * Synchronize CardDAV addressbook
 	 *
-	 * @param boolean CardDAV-Server id to synchronize a single CardDAV-Server
-	 * @param boolean within a ajax request
+	 * @param	boolean	$carddav_server_id	CardDAV server id to synchronize a single CardDAV server
+	 * @param	boolean $ajax				Within a ajax request or not
+	 * @return	void
 	 */
 	public function carddav_addressbook_sync($carddav_server_id = false, $ajax = true)
 	{
-		$servers = $this->get_carddav_server();
+		$servers	= $this->get_carddav_server();
+		$result		= false;
 
 		foreach ($servers as $server)
 		{
@@ -300,7 +299,9 @@ class carddav extends rcube_plugin
 	}
 
 	/**
-	 * render CardDAV server settings
+	 * Render CardDAV server settings
+	 *
+	 * @return	void
 	 */
 	public function carddav_server()
 	{
@@ -311,14 +312,14 @@ class carddav extends rcube_plugin
 	}
 
 	/**
-	* check if CardDAV-Server are available in the local database
+	* Check if CardDAV server are available in the local database
 	*
-	* @return boolean if CardDAV-Server are available in the local database return true else false
+	* @return	boolean		If CardDAV-Server are available in the local database return true else false
 	*/
 	protected function carddav_server_available()
 	{
-		$rcmail = rcmail::get_instance();
-		$user_id = $rcmail->user->data['user_id'];
+		$rcmail		= rcmail::get_instance();
+		$user_id	= $rcmail->user->data['user_id'];
 
 		$query = "
 			SELECT
@@ -342,16 +343,15 @@ class carddav extends rcube_plugin
 	}
 
 	/**
-	 * check if it's possible to connect to the CardDAV-Server
+	 * Check if it's possible to connect to the CardDAV server
 	 *
-	 * @return boolean
+	 * @return	boolean
 	 */
 	public function carddav_server_check_connection()
 	{
-		$rcmail = rcmail::get_instance();
-		$url = parse_input_value(base64_decode($_POST['_server_url']));
-		$username = parse_input_value(base64_decode($_POST['_username']));
-		$password = parse_input_value(base64_decode($_POST['_password']));
+		$url		= parse_input_value(base64_decode($_POST['_server_url']));
+		$username	= parse_input_value(base64_decode($_POST['_username']));
+		$password	= parse_input_value(base64_decode($_POST['_password']));
 
 		$carddav_backend = new carddav_backend($url);
 		$carddav_backend->set_auth($username, $password);
@@ -360,14 +360,14 @@ class carddav extends rcube_plugin
 	}
 
 	/**
-	 * render CardDAV-Server settings formular and register javascript actions
+	 * Render CardDAV server settings formular and register JavaScript actions
 	 *
-	 * @return string HTML CardDAV-Server formular
+	 * @return	string	HTML CardDAV server formular
 	 */
 	public function carddav_server_form()
 	{
-		$rcmail = rcmail::get_instance();
-		$boxcontent = null;
+		$rcmail		= rcmail::get_instance();
+		$boxcontent	= null;
 
 		if ($this->check_curl_installed())
 		{
@@ -413,11 +413,11 @@ class carddav extends rcube_plugin
 			$table->add(array('class' => 'title', 'width' => '16%'), $this->gettext('password'));
 			$table->add(array('width' => '16%'), null);
 
-			$table->add(null, $input_label->show());
-			$table->add(null, $input_server_url->show());
-			$table->add(null, $input_username->show());
-			$table->add(null, $input_password->show());
-			$table->add(null, $input_submit);
+			$table->add(array(), $input_label->show());
+			$table->add(array(), $input_server_url->show());
+			$table->add(array(), $input_username->show());
+			$table->add(array(), $input_password->show());
+			$table->add(array(), $input_submit);
 
 			$boxcontent = $table->show();
 		}
@@ -437,7 +437,9 @@ class carddav extends rcube_plugin
 	}
 
 	/**
-	 * save CardDAV-Server and execute first CardDAV-Contact sync
+	 * Save CardDAV server and execute first CardDAV contact sync
+	 *
+	 * @return void
 	 */
 	public function carddav_server_save()
 	{
@@ -488,7 +490,9 @@ class carddav extends rcube_plugin
 	}
 
 	/**
-	 * delete CardDAV-Server and all related local contacts
+	 * Delete CardDAV server and all related local contacts
+	 *
+	 * @return	void
 	 */
 	public function carddav_server_delete()
 	{
@@ -525,7 +529,10 @@ class carddav extends rcube_plugin
 	}
 
 	/**
-	 * extended write log with pre defined logfile name and add version before the message content
+	 * Extended write log with pre defined logfile name and add version before the message content
+	 *
+	 * @param	string	$message	Error log message
+	 * @return	void
 	 */
 	public function write_log($message)
 	{
