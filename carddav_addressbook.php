@@ -258,15 +258,15 @@ class carddav_addressbook extends rcube_addressbook
 		$vcard		= new rcube_vcard($contact['vcard']);
 		$contact	+= $vcard->get_assoc();
 
+		$this->result = new rcube_result_set(1);
+		$this->result->add($contact);
+
 		if ($assoc === true)
 		{
 			return $contact;
 		}
 		else
 		{
-			$this->result = new rcube_result_set(1);
-			$this->result->add($contact);
-
 			return $this->result;
 		}
 	}
