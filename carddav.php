@@ -158,15 +158,15 @@ class carddav extends rcube_plugin
 		if (!empty($servers))
 		{
 			$table = new html_table(array(
-				'cols' => 6,
-				'width' => '950'
+				'cols'	=> 6,
+				'width'	=> 950
 			));
 
-			$table->add(array('class' => 'title', 'width' => '13%'), $this->gettext('settings_label'));
-			$table->add(array('class' => 'title', 'width' => '36%'), $this->gettext('server'));
-			$table->add(array('class' => 'title', 'width' => '13%'), $this->gettext('username'));
-			$table->add(array('class' => 'title', 'width' => '13%'), $this->gettext('password'));
-			$table->add(array('class' => 'title', 'width' => '13%'), $this->gettext('settings_read_only'));
+			$table->add(array('width' => '13%', 'style' => 'font-weight: bold'), $this->gettext('settings_label'));
+			$table->add(array('width' => '36%', 'style' => 'font-weight: bold'), $this->gettext('server'));
+			$table->add(array('width' => '13%', 'style' => 'font-weight: bold'), $this->gettext('username'));
+			$table->add(array('width' => '13%', 'style' => 'font-weight: bold'), $this->gettext('password'));
+			$table->add(array('width' => '13%', 'style' => 'font-weight: bold'), $this->gettext('settings_read_only'));
 			$table->add(array('width' => '13%'), null);
 
 			foreach ($servers as $server)
@@ -187,7 +187,7 @@ class carddav extends rcube_plugin
 				$table->add(array(), $delete_submit);
 			}
 
-			return $table->show();
+			return html::tag('fieldset', null, html::tag('legend', null, $this->gettext('server')) . $table->show());
 		}
 		else
 		{
