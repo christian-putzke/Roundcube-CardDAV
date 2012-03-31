@@ -58,6 +58,7 @@ class carddav_synchronization_cronjob
 		$dir = dirname(__FILE__);
 		$dir = str_replace('plugins\\carddav\\cronjob', null, $dir);
 		$this->doc_root = str_replace('plugins/carddav/cronjob', null, $dir);
+		define('INSTALL_PATH', $this->doc_root);
 	}
 
 	/**
