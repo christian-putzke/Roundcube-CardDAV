@@ -158,15 +158,16 @@ class carddav extends rcube_plugin
 		if (!empty($servers))
 		{
 			$table = new html_table(array(
-				'cols' => 5,
+				'cols' => 6,
 				'width' => '950'
 			));
 
-			$table->add(array('class' => 'title', 'width' => '16%'), $this->gettext('settings_label'));
+			$table->add(array('class' => 'title', 'width' => '13%'), $this->gettext('settings_label'));
 			$table->add(array('class' => 'title', 'width' => '36%'), $this->gettext('server'));
-			$table->add(array('class' => 'title', 'width' => '16%'), $this->gettext('username'));
-			$table->add(array('class' => 'title', 'width' => '16%'), $this->gettext('password'));
-			$table->add(array('width' => '16%'), null);
+			$table->add(array('class' => 'title', 'width' => '13%'), $this->gettext('username'));
+			$table->add(array('class' => 'title', 'width' => '13%'), $this->gettext('password'));
+			$table->add(array('class' => 'title', 'width' => '13%'), $this->gettext('settings_read_only'));
+			$table->add(array('width' => '13%'), null);
 
 			foreach ($servers as $server)
 			{
@@ -182,6 +183,7 @@ class carddav extends rcube_plugin
 				$table->add(array(), $server['url']);
 				$table->add(array(), $server['username']);
 				$table->add(array(), '**********');
+				$table->add(array(), $server['read_only']);
 				$table->add(array(), $delete_submit);
 			}
 
@@ -207,7 +209,7 @@ class carddav extends rcube_plugin
 		{
 			if ($addressbook['id'] === $this->carddav_addressbook . $server['carddav_server_id'])
 			{
-				$addressbook['instance'] = new carddav_addressbook($server['carddav_server_id'], $server['label']);
+				$addressbook['instance'] = new carddav_addressbook($server['carddav_server_id'], $server['label'], ($server['read_only'] == 1 ? true : false));
 			}
 		}
 
@@ -226,7 +228,7 @@ class carddav extends rcube_plugin
 
 		foreach ($servers as $server)
 		{
-			$carddav_addressbook = new carddav_addressbook($server['carddav_server_id'], $server['label']);
+			$carddav_addressbook = new carddav_addressbook($server['carddav_server_id'], $server['label'], ($server['read_only'] == 1 ? true : false));
 
 			$addressbook['sources'][$this->carddav_addressbook . $server['carddav_server_id']] = array(
 				'id' => $this->carddav_addressbook . $server['carddav_server_id'],
@@ -272,7 +274,7 @@ class carddav extends rcube_plugin
 		{
 			if ($carddav_server_id === false || $carddav_server_id == $server['carddav_server_id'])
 			{
-				$carddav_addressbook = new carddav_addressbook($server['carddav_server_id'], $server['label']);
+				$carddav_addressbook = new carddav_addressbook($server['carddav_server_id'], $server['label'], ($server['read_only'] == 1 ? true : false));
 				$result = $carddav_addressbook->carddav_addressbook_sync($server);
 			}
 		}
@@ -372,27 +374,33 @@ class carddav extends rcube_plugin
 		if ($this->check_curl_installed())
 		{
 			$input_label = new html_inputfield(array(
-				'name' => '_label',
-				'id' => '_label',
-				'size' => '17'
+				'name'		=> '_label',
+				'id'		=> '_label',
+				'size'		=> '17'
 			));
 
 			$input_server_url = new html_inputfield(array(
-				'name' => '_server_url',
-				'id' => '_server_url',
-				'size' => '44'
+				'name'		=> '_server_url',
+				'id'		=> '_server_url',
+				'size'		=> '44'
 			));
 
 			$input_username = new html_inputfield(array(
-				'name' => '_username',
-				'id' => '_username',
-				'size' => '17'
+				'name'		=> '_username',
+				'id'		=> '_username',
+				'size'		=> '17'
 			));
 
 			$input_password = new html_passwordfield(array(
-				'name' => '_password',
-				'id' => '_password',
-				'size' => '17'
+				'name'		=> '_password',
+				'id'		=> '_password',
+				'size'		=> '17'
+			));
+
+			$input_read_only = new html_checkbox(array(
+				'name'		=> '_read_only',
+				'id'		=> '_read_only',
+				'value'		=> 1
 			));
 
 			$input_submit = $rcmail->output->button(array(
@@ -403,20 +411,22 @@ class carddav extends rcube_plugin
 			));
 
 			$table = new html_table(array(
-				'cols' => 5,
+				'cols' => 6,
 				'width' => '950'
 			));
 
-			$table->add(array('class' => 'title', 'width' => '16%'), $this->gettext('settings_label'));
-			$table->add(array('class' => 'title', 'width' => '36%'), $this->gettext('server'));
-			$table->add(array('class' => 'title', 'width' => '16%'), $this->gettext('username'));
-			$table->add(array('class' => 'title', 'width' => '16%'), $this->gettext('password'));
-			$table->add(array('width' => '16%'), null);
+			$table->add(array('class' => 'title', 'width' => '13%'), $this->gettext('settings_label'));
+			$table->add(array('class' => 'title', 'width' => '35%'), $this->gettext('server'));
+			$table->add(array('class' => 'title', 'width' => '13%'), $this->gettext('username'));
+			$table->add(array('class' => 'title', 'width' => '13%'), $this->gettext('password'));
+			$table->add(array('class' => 'title', 'width' => '13%'), $this->gettext('settings_read_only'));
+			$table->add(array('width' => '13%'), null);
 
 			$table->add(array(), $input_label->show());
 			$table->add(array(), $input_server_url->show());
 			$table->add(array(), $input_username->show());
 			$table->add(array(), $input_password->show());
+			$table->add(array(), $input_read_only->show());
 			$table->add(array(), $input_submit);
 
 			$boxcontent = $table->show();
@@ -447,20 +457,21 @@ class carddav extends rcube_plugin
 
 		if ($this->carddav_server_check_connection())
 		{
-			$user_id = $rcmail->user->data['user_id'];
-			$url = parse_input_value(base64_decode($_POST['_server_url']));
-			$username = parse_input_value(base64_decode($_POST['_username']));
-			$password = parse_input_value(base64_decode($_POST['_password']));
-			$label = parse_input_value(base64_decode($_POST['_label']));
+			$user_id	= $rcmail->user->data['user_id'];
+			$url		= parse_input_value(base64_decode($_POST['_server_url']));
+			$username	= parse_input_value(base64_decode($_POST['_username']));
+			$password	= parse_input_value(base64_decode($_POST['_password']));
+			$label		= parse_input_value(base64_decode($_POST['_label']));
+			$read_only	= (int) parse_input_value(base64_decode($_POST['_read_only']));
 
 			$query = "
 				INSERT INTO
-					".get_table_name('carddav_server')." (user_id, url, username, password, label)
+					".get_table_name('carddav_server')." (user_id, url, username, password, label, read_only)
 				VALUES
-					(?, ?, ?, ?, ?)
+					(?, ?, ?, ?, ?, ?)
 			";
 
-			$rcmail->db->query($query, $user_id, $url, $username, $rcmail->encrypt($password), $label);
+			$rcmail->db->query($query, $user_id, $url, $username, $rcmail->encrypt($password), $label, $read_only);
 
 			if ($rcmail->db->affected_rows())
 			{

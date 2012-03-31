@@ -110,11 +110,12 @@ class carddav_addressbook extends rcube_addressbook
 	 * @param	integer		$name					CardDAV server id
 	 * @return	void
 	 */
-	public function __construct($carddav_server_id, $name)
+	public function __construct($carddav_server_id, $name, $readonly)
 	{
 		$this->ready				= true;
 		$this->name					= $name;
 		$this->carddav_server_id	= $carddav_server_id;
+		$this->readonly				= $readonly;
 	}
 
 	/**

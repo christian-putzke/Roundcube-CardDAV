@@ -50,10 +50,11 @@ if (window.rcmail)
 
 	function carddav_server_add()
 	{
-		var input_label = rcube_find_object('_label');
-		var input_url = rcube_find_object('_server_url');
-		var input_username = rcube_find_object('_username');
-		var input_password = rcube_find_object('_password');
+		var input_label		= rcube_find_object('_label');
+		var input_url		= rcube_find_object('_server_url');
+		var input_username	= rcube_find_object('_username');
+		var input_password	= rcube_find_object('_password');
+		var input_read_only	= rcube_find_object('_read_only');
 
 		if (input_label.value == '' || input_url.value == '')
 		{
@@ -63,7 +64,7 @@ if (window.rcmail)
 		{
 			rcmail.http_post(
 				'plugin.carddav-server-save',
-				'_label=' + $.base64Encode(input_label.value) + '&_server_url=' + $.base64Encode(input_url.value) + '&_username=' + $.base64Encode(input_username.value) + '&_password=' + $.base64Encode(input_password.value),
+				'_label=' + $.base64Encode(input_label.value) + '&_server_url=' + $.base64Encode(input_url.value) + '&_username=' + $.base64Encode(input_username.value) + '&_password=' + $.base64Encode(input_password.value)  + '&_read_only=' + $.base64Encode(input_read_only.value),
 				rcmail.display_message(rcmail.gettext('settings_init_server', 'carddav'), 'loading')
 			);
 		}

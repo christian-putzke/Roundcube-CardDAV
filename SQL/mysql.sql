@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS `carddav_server` (
   `username` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
   `password` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
   `label` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
+  `read_only` tinyint(1) NOT NULL,
   PRIMARY KEY (`carddav_server_id`),
   KEY `user_id` (`user_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;

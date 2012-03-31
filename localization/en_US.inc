@@ -4,6 +4,7 @@ $labels = array();
 $labels['settings']						= 'CardDAV-Settings';
 $labels['settings_tab']					= 'CardDAV';
 $labels['settings_label']				= 'Label';
+$labels['settings_read_only']			= 'Read only';
 $labels['settings_curl_not_installed']	= 'The PHP-Extension CURL is not installed! Please install CURL to use the CardDAV-Plugin.';
 $labels['addressbook_contacts']			= 'CardDAV-Contacts';
 $labels['addressbook_sync']				= 'Synchronize CardDAV-Addressbook';
