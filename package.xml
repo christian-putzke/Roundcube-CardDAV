@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" packagerversion="1.9.0" version="2.0" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
+    http://pear.php.net/dtd/tasks-1.0.xsd
+    http://pear.php.net/dtd/package-2.0
+    http://pear.php.net/dtd/package-2.0.xsd">
+	<name>Roundcube CardDAV</name>
+	<uri>https://github.com/graviox/Roundcube-CardDAV</uri>
+	<summary>CardDAV implementation for Roundcube</summary>
+	<description>
+		This is a CardDAV implementation for Roundcube 0.6 or higher.
+		It allows every user to add multiple CardDAV server in their settings.
+		The CardDAV contacts (vCards) will be synchronized automaticly with their roundcube addressbook.
+	</description>
+	<lead>
+		<name>Christian Putzke</name>
+		<email>christian.putzke@graviox.de</email>
+		<active>yes</active>
+	</lead>
+	<date>2012-03-31</date>
+	<version>
+		<release>0.5</release>
+	</version>
+	<stability>
+		<release>stable</release>
+	</stability>
+	<license uri="http://www.gnu.org/licenses/agpl.html">GNU AGPL v3 or later</license>
+	<notes>-</notes>
+	<contents>
+		<dir baseinstalldir="/" name="/">
+			<file name="carddav.php" role="php">
+				<tasks:replace from="@name@" to="name" type="package-info"/>
+				<tasks:replace from="@package_version@" to="version" type="package-info"/>
+			</file>
+			<file name="carddav_addressbook.js" role="data">
+				<tasks:replace from="@name@" to="name" type="package-info"/>
+				<tasks:replace from="@package_version@" to="version" type="package-info"/>
+			</file>
+			<file name="carddav_addressbook.php" role="php">
+				<tasks:replace from="@name@" to="name" type="package-info"/>
+				<tasks:replace from="@package_version@" to="version" type="package-info"/>
+			</file>
+			<file name="carddav_backend.php" role="php">
+				<tasks:replace from="@name@" to="name" type="package-info"/>
+				<tasks:replace from="@package_version@" to="version" type="package-info"/>
+			</file>
+			<file name="carddav_settings.js" role="data">
+				<tasks:replace from="@name@" to="name" type="package-info"/>
+				<tasks:replace from="@package_version@" to="version" type="package-info"/>
+			</file>
+			<file name="jquery.base64.js" role="data">
+				<tasks:replace from="@name@" to="name" type="package-info"/>
+				<tasks:replace from="@package_version@" to="version" type="package-info"/>
+			</file>
+			<file name="cronjob/synchronize.php" role="data">
+				<tasks:replace from="@name@" to="name" type="package-info"/>
+				<tasks:replace from="@package_version@" to="version" type="package-info"/>
+			</file>
+			<file name="localization/de_DE.inc" role="data"></file>
+			<file name="localization/en_US.inc" role="data"></file>
+			<file name="localization/fr_FR.inc" role="data"></file>
+			<file name="localization/it_IT.inc" role="data"></file>
+			<file name="skins/default/sync_act.png" role="data"></file>
+			<file name="skins/default/sync_pas.png" role="data"></file>
+			<file name="SQL/mysql.sql" role="data"></file>
+			<file name="SQL/mysql.update.sql" role="data"></file>
+		</dir>
+		<!-- / -->
+	</contents>
+	<dependencies>
+		<required>
+			<php>
+				<min>5.2.1</min>
+			</php>
+			<pearinstaller>
+				<min>1.7.0</min>
+			</pearinstaller>
+		</required>
+	</dependencies>
+	<phprelease/>
+</package>

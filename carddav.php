@@ -3,8 +3,8 @@
 /**
  * Include required CardDAV classes
  */
-require_once dirname(__FILE__).'/carddav_backend.php';
-require_once dirname(__FILE__).'/carddav_addressbook.php';
+require_once dirname(__FILE__) . '/carddav_backend.php';
+require_once dirname(__FILE__) . '/carddav_addressbook.php';
 
 /**
  * Roundcube CardDAV implementation

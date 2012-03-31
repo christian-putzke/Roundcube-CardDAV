@@ -4,6 +4,7 @@ Changes from v0.4 to v0.5
 - Added list of CardDAV servers
 - Added read only option for CardDAV servers
 - Added SOGo support
+- Added package.xml
 - CardDAV backend class update to v0.5.1
 - Minor comment, phpdoc and documentation changes
 
