@@ -12,3 +12,6 @@ CHANGE `email` `email` VARCHAR( 255 ) CHARACTER SET utf8 COLLATE utf8_general_ci
 ALTER TABLE `carddav_contacts` ADD `words` TEXT NULL DEFAULT NULL AFTER `vcard` ,
 ADD `firstname` VARCHAR( 128 ) NULL DEFAULT NULL AFTER `words` ,
 ADD `surname` VARCHAR( 128 ) NULL DEFAULT NULL AFTER `firstname` ;
+
+// updates from version 0.5
+ALTER TABLE `carddav_server` ADD `read_only` tinyint(1) NOT NULL AFTER `label`;

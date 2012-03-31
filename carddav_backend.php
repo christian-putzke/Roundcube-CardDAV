@@ -1,7 +1,7 @@
 <?php
 
 /**
- * CardDAV-PHP
+ * CardDAV PHP
  *
  * simple CardDAV query
  * --------------------
@@ -10,21 +10,21 @@
  * echo $carddav->get();
  *
  *
- * simple vCard query
+ * Simple vCard query
  * ------------------
  * $carddav = new carddav_backend('https://davical.example.com/user/contacts/');
  * $carddav->set_auth('username', 'password');
  * echo $carddav->get_vcard('0126FFB4-2EB74D0A-302EA17F');
  *
  *
- * xml vCard query
+ * XML vCard query
  * ------------------
  * $carddav = new carddav_backend('https://davical.example.com/user/contacts/');
  * $carddav->set_auth('username', 'password');
  * echo $carddav->get_xml_vcard('0126FFB4-2EB74D0A-302EA17F');
  *
  *
- * check CardDAV-Server connection
+ * Check CardDAV server connection
  * -------------------------------
  * $carddav = new carddav_backend('https://davical.example.com/user/contacts/');
  * $carddav->set_auth('username', 'password');
@@ -50,7 +50,7 @@
  *
  * $carddav = new carddav_backend('https://davical.example.com/user/contacts/');
  * $carddav->set_auth('username', 'password');
- * $carddav->add($vcard);
+ * $vcard_id = $carddav->add($vcard);
  *
  *
  * CardDAV update query
@@ -68,20 +68,22 @@
  * $carddav->update($vcard, '0126FFB4-2EB74D0A-302EA17F');
  *
  *
- * URL-Schema list
- * ---------------
- * DAViCal: https://example.com/{resource|principal}/{collection}/
- * Apple Addressbook Server: https://example.com/addressbooks/users/{resource|principal}/{collection}/
+ * CardDAV server list
+ * -------------------
+ * DAViCal: https://example.com/{resource|principal|username}/{collection}/
+ * Apple Addressbook Server: https://example.com/addressbooks/users/{resource|principal|username}/{collection}/
  * memotoo: https://sync.memotoo.com/cardDAV/
- * SabreDAV: https://example.com/addressbooks/{resource|principal}/{collection}/
- * ownCloud: https://example.com/apps/contacts/carddav.php/addressbooks/{username}/{resource|principal}/
+ * SabreDAV: https://example.com/addressbooks/{resource|principal|username}/{collection}/
+ * ownCloud: https://example.com/apps/contacts/carddav.php/addressbooks/{resource|principal|username}/{collection}/
+ * SOGo: http://sogo-demo.inverse.ca/SOGo/dav/{resource|principal|username}/Contacts/{collection}/
  *
  *
  * @author Christian Putzke <christian.putzke@graviox.de>
- * @copyright Graviox Studios
- * @link http://www.graviox.de
+ * @copyright Christian Putzke @ Graviox Studios
+ * @link http://www.graviox.de/
+ * @link https://twitter.com/graviox/
  * @since 20.07.2011
- * @version 0.4.9
+ * @version 0.5.1
  * @license http://www.gnu.org/licenses/agpl.html GNU AGPL v3 or later
  *
  */
@@ -89,73 +91,74 @@
 class carddav_backend
 {
 	/**
-	 * CardDAV-PHP Version
+	 * CardDAV PHP Version
 	 *
-	 * @var constant
+	 * @constant string
 	 */
-	const VERSION = '0.4.9';
+	const VERSION = '0.5.1';
 
 	/**
-	 * user agent displayed in http requests
+	 * User agent displayed in http requests
 	 *
-	 * @var constant
+	 * @constant string
 	 */
-	const USERAGENT = 'CardDAV-PHP/';
+	const USERAGENT = 'CardDAV PHP/';
 
 	/**
-	 * CardDAV-Server url
+	 * CardDAV server url
 	 *
 	 * @var string
 	 */
 	private $url = null;
 
 	/**
-	 * CardDAV-Server url_parts
+	 * CardDAV server url_parts
 	 *
-	 * @var string
+	 * @var array
 	 */
 	private $url_parts = null;
 
 	/**
-	 * authentication information
+	 * Authentication string
 	 *
 	 * @var string
 	 */
 	private $auth = null;
 
 	/**
-	 * last used vCard id
-	 *
-	 * @var string
-	 */
-	private $vcard_id = null;
-
-	/**
-	* authentication: username
+	* Authentication: username
 	*
 	* @var string
 	*/
 	private $username = null;
 
 	/**
-	* authentication: password
+	* Authentication: password
 	*
 	* @var string
 	*/
 	private $password = null;
 
 	/**
-	 * characters used for vCard id generation
+	 * Characters used for vCard id generation
 	 *
 	 * @var array
 	 */
 	private $vcard_id_chars = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F');
 
 	/**
-	 * constructor
-	 * set the CardDAV-Server url
+	 * CardDAV server connection (curl handle)
 	 *
-	 * @param string $url CardDAV-Server url
+	 * @var resource
+	 */
+	private $curl;
+
+	/**
+	 * Constructor
+	 * Sets the CardDAV server url
+	 *
+	 * @param	string	$url	CardDAV server url
+	 * @return	void
 	 */
 	public function __construct($url = null)
 	{
@@ -166,9 +169,10 @@ class carddav_backend
 	}
 
 	/**
-	* set the CardDAV-Server url
+	* Sets the CardDAV server url
 	*
-	* @param string $url CardDAV-Server url
+	* @param	string	$url	CardDAV server url
+	* @return	void
 	*/
 	public function set_url($url)
 	{
@@ -183,10 +187,11 @@ class carddav_backend
 	}
 
 	/**
-	 * set authentication information
+	 * Sets authentication string
 	 *
-	 * @param string $username CardDAV-Server username
-	 * @param string $password CardDAV-Server password
+	 * @param	string	$username	CardDAV server username
+	 * @param	string	$password	CardDAV server password
+	 * @return	void
 	 */
 	public function set_auth($username, $password)
 	{
@@ -196,11 +201,11 @@ class carddav_backend
 	}
 
 	/**
-	 * get propfind xml-response from the CardDAV-Server
+	 * Gets propfind XML response from the CardDAV server
 	 *
-	 * @param boolean $include_vcards include vCards in the response (simplified only)
-	 * @param boolean $raw get response raw or simplified
-	 * @return string raw or simplified xml response
+	 * @param	boolean	$include_vcards		vCards include vCards in the response (simplified only)
+	 * @param	boolean	$raw				Get response raw or simplified
+	 * @return	string						Raw or simplified XML response
 	 */
 	public function get($include_vcards = true, $raw = false)
 	{
@@ -217,10 +222,10 @@ class carddav_backend
 	}
 
 	/**
-	* get a clean vCard from the CardDAV-Server
+	* Gets a clean vCard from the CardDAV server
 	*
-	* @param string $id vCard id on the CardDAV-Server
-	* @return string vCard (text/vcard)
+	* @param	string	$vcard_id	vCard id on the CardDAV server
+	* @return	string				vCard (text/vcard)
 	*/
 	public function get_vcard($vcard_id)
 	{
@@ -229,12 +234,13 @@ class carddav_backend
 	}
 
 	/**
-	 * get a vCard + XML from the CardDAV-Server
+	 * Gets a vCard + XML from the CardDAV Server
 	 *
-	 * @param string $id vCard id on the CardDAV-Server
-	 * @return string vCard (text/xml)
+	 * @param	string		$vcard_id	vCard id on the CardDAV Server
+	 * @param	boolean		$raw		Get response raw or simplified
+	 * @return	string					Raw or simplified vCard (text/xml)
 	 */
-	public function get_xml_vcard($vcard_id)
+	public function get_xml_vcard($vcard_id, $raw = false)
 	{
 		$vcard_id = str_replace('.vcf', null, $vcard_id);
 
@@ -255,7 +261,7 @@ class carddav_backend
 
 		$response = $this->query($this->url, 'REPORT', $xml->outputMemory(), 'text/xml');
 
-		if ($response === false)
+		if ($raw === true || $response === false)
 		{
 			return $response;
 		}
@@ -266,39 +272,20 @@ class carddav_backend
 	}
 
 	/**
-	 * get the last used vCard id
-	 *
-	 * @return string $vcard_id last vCard id
-	 */
-	public function get_last_vcard_id()
-	{
-		return $this->vcard_id;
-	}
-
-	/**
-	* checks if the CardDAV-Server is reachable
+	* Checks if the CardDAV server is reachable
 	*
-	* @return boolean
+	* @return	boolean
 	*/
 	public function check_connection()
 	{
-		$response = $this->query($this->url, 'OPTIONS');
-
-		if ($response === false)
-		{
-			return false;
-		}
-		else
-		{
-			return true;
-		}
+		return $this->query($this->url, 'OPTIONS', null, null, true);
 	}
 
 	/**
-	 * cleans the vCard
+	 * Cleans the vCard
 	 *
-	 * @param string $vcard vCard
-	 * @return string $vcard vCard
+	 * @param	string	$vcard	vCard
+	 * @return	string	$vcard	vCard
 	 */
 	private function clean_vcard($vcard)
 	{
@@ -308,53 +295,58 @@ class carddav_backend
 	}
 
 	/**
-	 * deletes an entry from the CardDAV-Server
+	 * Deletes an entry from the CardDAV server
 	 *
-	 * @param string $id vCard id on the CardDAV-Server
-	 * @return string CardDAV xml-response
+	 * @param	string	$vcard_id	vCard id on the CardDAV server
+	 * @return	boolean
 	 */
 	public function delete($vcard_id)
 	{
-		$this->vcard_id = $vcard_id;
-		return $this->query($this->url . $vcard_id . '.vcf', 'DELETE');
+		return $this->query($this->url . $vcard_id . '.vcf', 'DELETE', null, null, true);
 	}
 
 	/**
-	 * adds an entry to the CardDAV-Server
+	 * Adds an entry to the CardDAV server
 	 *
-	 * @param string $vcard vCard
-	 * @return string CardDAV xml-response
+	 * @param	string	$vcard	vCard
+	 * @return	string			The new vCard id
 	 */
 	public function add($vcard)
 	{
 		$vcard_id = $this->generate_vcard_id();
-		$this->vcard_id = $vcard_id;
 		$vcard = $this->clean_vcard($vcard);
 
-		return $this->query($this->url . $vcard_id . '.vcf', 'PUT', $vcard, 'text/vcard');
+		if ($this->query($this->url . $vcard_id . '.vcf', 'PUT', $vcard, 'text/vcard', true) === true)
+		{
+			return $vcard_id;
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	/**
-	 * updates an entry to the CardDAV-Server
+	 * Updates an entry to the CardDAV server
 	 *
-	 * @param string $vcard vCard
-	 * @param string $id vCard id on the CardDAV-Server
-	 * @return string CardDAV xml-response
+	 * @param	string	$vcard		vCard
+	 * @param	string	$vcard_id	vCard id on the CardDAV server
+	 * @return	boolean
 	 */
 	public function update($vcard, $vcard_id)
 	{
 		$vcard_id = str_replace('.vcf', null, $vcard_id);
-		$this->vcard_id = $vcard_id;
 		$vcard = $this->clean_vcard($vcard);
 
-		return $this->query($this->url . $vcard_id . '.vcf', 'PUT', $vcard, 'text/vcard');
+		return $this->query($this->url . $vcard_id . '.vcf', 'PUT', $vcard, 'text/vcard', true);
 	}
 
 	/**
-	 * simplify CardDAV xml-response
+	 * Simplify CardDAV XML response
 	 *
-	 * @param string $response CardDAV xml-response
-	 * @return string simplified CardDAV xml-response
+	 * @param	string	$response			CardDAV XML response
+	 * @param	boolean	$include_vcards		Include vCards or not
+	 * @return	string						Simplified CardDAV XML response
 	 */
 	private function simplify($response, $include_vcards = true)
 	{
@@ -378,17 +370,38 @@ class carddav_backend
 						if (!empty($id))
 						{
 							$simplified_xml->startElement('element');
-							$simplified_xml->writeElement('id', $id);
-							$simplified_xml->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
-							$simplified_xml->writeElement('last_modified', $response->propstat->prop->getlastmodified);
+								$simplified_xml->writeElement('id', $id);
+								$simplified_xml->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
+								$simplified_xml->writeElement('last_modified', $response->propstat->prop->getlastmodified);
 
-							if ($include_vcards === true)
-							{
-								$simplified_xml->writeElement('vcard', $this->get_vcard($id));
-							}
-
+								if ($include_vcards === true)
+								{
+									$simplified_xml->writeElement('vcard', $this->get_vcard($id));
+								}
 							$simplified_xml->endElement();
 						}
+					}
+					else if (preg_match('/unix-directory/', $response->propstat->prop->getcontenttype))
+					{
+						if (isset($response->propstat->prop->href))
+						{
+							$href = $response->propstat->prop->href;
+						}
+						else if (isset($response->href))
+						{
+							$href = $response->href;
+						}
+						else
+						{
+							$href = null;
+						}
+
+						$url = str_replace($this->url_parts['path'], null, $this->url) . $href;
+						$simplified_xml->startElement('addressbook_element');
+							$simplified_xml->writeElement('display_name', $response->propstat->prop->displayname);
+							$simplified_xml->writeElement('url', $url);
+							$simplified_xml->writeElement('last_modified', $response->propstat->prop->getlastmodified);
+						$simplified_xml->endElement();
 					}
 				}
 
@@ -399,10 +412,10 @@ class carddav_backend
 	}
 
 	/**
-	 * cleans CardDAV xml-response
+	 * Cleans CardDAV XML response
 	 *
-	 * @param string $response CardDAV xml-response
-	 * @return string $response cleaned CardDAV xml-response
+	 * @param	string	$response	CardDAV XML response
+	 * @return	string	$response	Cleaned CardDAV XML response
 	 */
 	private function clean_response($response)
 	{
@@ -416,49 +429,76 @@ class carddav_backend
 	}
 
 	/**
-	 * quries the CardDAV-Server via curl and returns the response
+	 * Curl initialization
 	 *
-	 * @param string $method HTTP-Method like (OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, COPY, MOVE)
-	 * @param string $content content for CardDAV-Queries
-	 * @param string $content_type set content-type
-	 * @return string CardDAV xml-response
+	 * @return void
 	 */
-	private function query($url, $method, $content = null, $content_type = null)
+	public function curl_init()
 	{
-		$ch = curl_init($url);
+		if (empty($this->curl))
+		{
+			$this->curl = curl_init();
+			curl_setopt($this->curl, CURLOPT_HEADER, false);
+			curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, false);
+			curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($this->curl, CURLOPT_USERAGENT, self::USERAGENT.self::VERSION);
 
-		curl_setopt($ch, CURLOPT_HEADER, false);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-		curl_setopt($ch, CURLOPT_USERAGENT, self::USERAGENT.self::VERSION);
+			if ($this->auth !== null)
+			{
+				curl_setopt($this->curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+				curl_setopt($this->curl, CURLOPT_USERPWD, $this->auth);
+			}
+		}
+	}
+
+	/**
+	 * Quries the CardDAV server via curl and returns the response
+	 *
+	 * @param	string	$url				CardDAV server URL
+	 * @param	string	$method				HTTP-Method like (OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, COPY, MOVE)
+	 * @param	string	$content			Content for CardDAV queries
+	 * @param	string	$content_type		Set content type
+	 * @param	boolean	$return_boolean		Return just a boolean
+	 * @return	string						CardDAV XML response
+	 */
+	private function query($url, $method, $content = null, $content_type = null, $return_boolean = false)
+	{
+		$this->curl_init();
+
+		curl_setopt($this->curl, CURLOPT_URL, $url);
+		curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, $method);
 
 		if ($content !== null)
 		{
-			curl_setopt($ch, CURLOPT_POST, true);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $content);
+			curl_setopt($this->curl, CURLOPT_POST, true);
+			curl_setopt($this->curl, CURLOPT_POSTFIELDS, $content);
+		}
+		else
+		{
+			curl_setopt($this->curl, CURLOPT_POST, false);
+			curl_setopt($this->curl, CURLOPT_POSTFIELDS, null);
 		}
 
 		if ($content_type !== null)
 		{
-			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: '.$content_type));
+			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array('Content-type: '.$content_type));
 		}
-
-		if ($this->auth !== null)
+		else
 		{
-			curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-			curl_setopt($ch, CURLOPT_USERPWD, $this->auth);
+			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array());
 		}
 
-		$response = curl_exec($ch);
-		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-		curl_close($ch);
+		$response = curl_exec($this->curl);
+		$http_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
 		if (in_array($http_code, array(200, 207)))
 		{
-			return $response;
+			return ($return_boolean === true ? true : $response);
+		}
+		else if ($return_boolean === true && in_array($http_code, array(201, 204)))
+		{
+			return true;
 		}
 		else
 		{
@@ -467,9 +507,9 @@ class carddav_backend
 	}
 
 	/**
-	 * returns a valid and unused vCard id
+	 * Returns a valid and unused vCard id
 	 *
-	 * @return string valid vCard id
+	 * @return	string	Valid vCard id
 	 */
 	private function generate_vcard_id()
 	{
@@ -490,13 +530,27 @@ class carddav_backend
 		$carddav = new carddav_backend($this->url);
 		$carddav->set_auth($this->username, $this->password);
 
-		if (!preg_match('/BEGIN:VCARD/', $carddav->query($this->url . $id . '.vcf', 'GET')))
+		if ($carddav->query($this->url . $id . '.vcf', 'GET', null, null, true))
 		{
-			return $id;
+			return $this->generate_vcard_id();
 		}
 		else
 		{
-			return $this->generate_vcard_id();
+			return $id;
+		}
+	}
+
+	/**
+	 * Destructor
+	 * Close curl connection if it's open
+	 *
+	 * @return	void
+	 */
+	public function __destruct()
+	{
+		if (!empty($this->curl))
+		{
+			curl_close($this->curl);
 		}
 	}
 }
