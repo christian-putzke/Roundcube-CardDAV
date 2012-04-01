@@ -1,8 +1,10 @@
 <?php
 
 $labels = array();
-$labels['settings']						= 'CardDAV Settings';
-$labels['server']						= 'CardDAV Server';
+$labels['settings']						= 'CardDAV settings';
+$labels['settings_server']				= 'CardDAV server';
+$labels['settings_server_form']			= 'Add your CardDAV server';
+$labels['settings_example_server_list']	= 'CardDAV server example URLs';
 $labels['settings_tab']					= 'CardDAV';
 $labels['settings_label']				= 'Label';
 $labels['settings_read_only']			= 'Read only';

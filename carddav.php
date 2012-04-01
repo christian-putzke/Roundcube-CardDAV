@@ -53,8 +53,16 @@ class carddav extends rcube_plugin
 	 */
 	public function init()
 	{
-		$rcmail = rcmail::get_instance();
+		$rcmail		= rcmail::get_instance();
+		$skin_path	= $this->local_skin_path();
+
+		if (!is_dir($skin_path))
+		{
+			$skin_path = 'skins/default';
+		}
+
 		$this->add_texts('localization/', true);
+		$this->include_stylesheet($skin_path . '/carddav.css');
 
 		switch ($rcmail->task)
 		{
@@ -74,17 +82,10 @@ class carddav extends rcube_plugin
 					$this->add_hook('addressbooks_list', array($this, 'get_carddav_addressbook_sources'));
 					$this->add_hook('addressbook_get', array($this, 'get_carddav_addressbook'));
 
-					$skin_path = $this->local_skin_path();
-
-					if (!is_dir($skin_path))
-					{
-						$skin_path = 'skins/default';
-					}
-
 					$this->add_button(array(
 						'command' => 'plugin.carddav-addressbook-sync',
-						'imagepas' => $skin_path.'/sync_pas.png',
-						'imageact' => $skin_path.'/sync_act.png',
+						'imagepas' => $skin_path . '/sync_pas.png',
+						'imageact' => $skin_path . '/sync_act.png',
 						'width' => 32,
 						'height' => 32,
 						'title' => 'carddav.addressbook_sync'
@@ -112,6 +113,29 @@ class carddav extends rcube_plugin
 				}
 			break;
 		}
+	}
+
+	/**
+	 * Extend the original local_skin_path method with the default skin path as fallback
+	 *
+	 * @param	boolean		$include_plugins_directory	Include plugins directory
+	 * @return	string		$skin_path					Roundcubes skin path
+	 */
+	public function local_skin_path($include_plugins_directory = false)
+	{
+		$skin_path	= parent::local_skin_path();
+
+		if (!is_dir($skin_path))
+		{
+			$skin_path = 'skins/default';
+		}
+
+		if ($include_plugins_directory === true)
+		{
+			$skin_path = 'plugins/carddav/' . $skin_path;
+		}
+
+		return $skin_path;
 	}
 
 	/**
@@ -153,21 +177,23 @@ class carddav extends rcube_plugin
 	*/
 	protected function get_carddav_server_list()
 	{
-		$servers = $this->get_carddav_server();
+		$servers	= $this->get_carddav_server();
 
 		if (!empty($servers))
 		{
-			$table = new html_table(array(
+			$skin_path	= $this->local_skin_path(true);
+			$content	= html::div(array('class' => 'carddav_headline'), $this->gettext('settings_server'));
+			$table		= new html_table(array(
 				'cols'	=> 6,
-				'width'	=> 950
+				'class'	=> 'carddav_server_list'
 			));
 
-			$table->add(array('width' => '13%', 'style' => 'font-weight: bold'), $this->gettext('settings_label'));
-			$table->add(array('width' => '36%', 'style' => 'font-weight: bold'), $this->gettext('server'));
-			$table->add(array('width' => '13%', 'style' => 'font-weight: bold'), $this->gettext('username'));
-			$table->add(array('width' => '13%', 'style' => 'font-weight: bold'), $this->gettext('password'));
-			$table->add(array('width' => '13%', 'style' => 'font-weight: bold'), $this->gettext('settings_read_only'));
-			$table->add(array('width' => '13%'), null);
+			$table->add_header(array('width' => '13%'), $this->gettext('settings_label'));
+			$table->add_header(array('width' => '36%'), $this->gettext('server'));
+			$table->add_header(array('width' => '13%'), $this->gettext('username'));
+			$table->add_header(array('width' => '13%'), $this->gettext('password'));
+			$table->add_header(array('width' => '13%'), $this->gettext('settings_read_only'));
+			$table->add_header(array('width' => '13%'), null);
 
 			foreach ($servers as $server)
 			{
@@ -183,11 +209,12 @@ class carddav extends rcube_plugin
 				$table->add(array(), $server['url']);
 				$table->add(array(), $server['username']);
 				$table->add(array(), '**********');
-				$table->add(array(), $server['read_only']);
+				$table->add(array(), ($server['read_only'] ? html::img($skin_path . '/checked.png') : null));
 				$table->add(array(), $delete_submit);
 			}
 
-			return html::tag('fieldset', null, html::tag('legend', null, $this->gettext('server')) . $table->show());
+			$content .= html::div(array('class' => 'carddav_container'), $table->show());
+			return $content;
 		}
 		else
 		{
@@ -411,16 +438,16 @@ class carddav extends rcube_plugin
 			));
 
 			$table = new html_table(array(
-				'cols' => 6,
-				'width' => '950'
+				'cols'	=> 6,
+				'class'	=> 'carddav_server_list'
 			));
 
-			$table->add(array('class' => 'title', 'width' => '13%'), $this->gettext('settings_label'));
-			$table->add(array('class' => 'title', 'width' => '35%'), $this->gettext('server'));
-			$table->add(array('class' => 'title', 'width' => '13%'), $this->gettext('username'));
-			$table->add(array('class' => 'title', 'width' => '13%'), $this->gettext('password'));
-			$table->add(array('class' => 'title', 'width' => '13%'), $this->gettext('settings_read_only'));
-			$table->add(array('width' => '13%'), null);
+			$table->add_header(array('width' => '13%'), $this->gettext('settings_label'));
+			$table->add_header(array('width' => '35%'), $this->gettext('server'));
+			$table->add_header(array('width' => '13%'), $this->gettext('username'));
+			$table->add_header(array('width' => '13%'), $this->gettext('password'));
+			$table->add_header(array('width' => '13%'), $this->gettext('settings_read_only'));
+			$table->add_header(array('width' => '13%'), null);
 
 			$table->add(array(), $input_label->show());
 			$table->add(array(), $input_server_url->show());
@@ -429,7 +456,8 @@ class carddav extends rcube_plugin
 			$table->add(array(), $input_read_only->show());
 			$table->add(array(), $input_submit);
 
-			$boxcontent = $table->show();
+			$boxcontent .= html::div(array('class' => 'carddav_headline'), $this->gettext('settings_server_form'));
+			$boxcontent .= html::div(array('class' => 'carddav_container'), $table->show());;
 		}
 		else
 		{
@@ -437,13 +465,52 @@ class carddav extends rcube_plugin
 		}
 
 		$output = html::div(
-			array('class' => 'box'),
+			array('class' => 'box carddav'),
 			html::div(array('class' => 'boxtitle'), $this->gettext('settings')).
-			html::div(array('class' => 'boxcontent', 'id' => 'carddav_server_list'), $this->get_carddav_server_list()).
-			html::div(array('class' => 'boxcontent'), $boxcontent)
+				html::div(array('class' => 'boxcontent', 'id' => 'carddav_server_list'), $this->get_carddav_server_list()).
+				html::div(array('class' => 'boxcontent'), $boxcontent).
+				html::div(array('class' => 'boxcontent'), $this->get_carddav_url_list())
 		);
 
 		return $output;
+	}
+
+	/**
+	 * Render a CardDAV server example URL list
+	 *
+	 * @return	string	$content	HTML CardDAV server example URL list
+	 */
+	public function get_carddav_url_list()
+	{
+		$content = null;
+
+		$table = new html_table(array(
+			'cols'	=> 2,
+			'class'	=> 'carddav_server_list'
+		));
+
+		$table->add(array(), 'DAViCal');
+		$table->add(array(), 'https://example.com/{resource|principal|username}/{collection}/');
+
+		$table->add(array(), 'Apple Addressbook Server');
+		$table->add(array(), 'https://example.com/addressbooks/users/{resource|principal|username}/{collection}/');
+
+		$table->add(array(), 'memotoo');
+		$table->add(array(), 'https://sync.memotoo.com/cardDAV/');
+
+		$table->add(array(), 'SabreDAV');
+		$table->add(array(), 'https://example.com/addressbooks/{resource|principal|username}/{collection}/');
+
+		$table->add(array(), 'ownCloud');
+		$table->add(array(), 'https://example.com/apps/contacts/carddav.php/addressbooks/{resource|principal|username}/{collection}/');
+
+		$table->add(array(), 'SOGo');
+		$table->add(array(), 'https://example.com/SOGo/dav/{resource|principal|username}/Contacts/{collection}/');
+
+		$content .= html::div(array('class' => 'carddav_headline example_server_list'), $this->gettext('settings_example_server_list'));
+		$content .= html::div(array('class' => 'carddav_container'), $table->show());
+
+		return $content;
 	}
 
 	/**

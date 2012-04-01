@@ -1,0 +1,57 @@
+.carddav .button {
+	border-radius: 5px;
+	border: 1px solid #aaa;
+	text-shadow: 1px 1px 0px #fff;
+	cursor: pointer;
+}
+
+.carddav .carddav_headline {
+	font-size: 120%;
+	text-shadow: 1px 1px 0px #fff;
+	font-weight: bold;
+	margin-bottom: 10px;
+}
+
+.carddav .carddav_container {
+	margin: 0 10px;
+	background: #eaeaea;
+	border-radius: 5px;
+}
+
+.carddav .carddav_server_list {
+	width: 100%;
+	border-collapse: collapse;
+	text-shadow: 1px 1px 0px #fff;
+}
+
+.carddav_server_list thead td {
+	font-weight: bold;
+	padding: 10px;
+	background-color: #e5e5e5;
+	border-bottom: 1px solid #eee;
+}
+
+.carddav_server_list thead td:first-child {
+	border-top-left-radius: 5px;
+}
+
+.carddav_server_list thead td:last-child {
+	border-top-right-radius: 5px;
+}
+
+.carddav_server_list tbody tr:hover {
+	background-color: #def;
+}
+
+.carddav_server_list tbody tr:hover td {
+	border-radius: 5px;
+}
+
+.carddav_server_list tbody td {
+	padding: 5px 15px;
+}
+
+.carddav .carddav_headline.example_server_list {
+	margin-top: 30px;
+	font-size: 100%;
+}
