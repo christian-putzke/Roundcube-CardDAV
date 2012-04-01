@@ -64,7 +64,7 @@ if (window.rcmail)
 		{
 			rcmail.http_post(
 				'plugin.carddav-server-save',
-				'_label=' + $.base64Encode(input_label.value) + '&_server_url=' + $.base64Encode(input_url.value) + '&_username=' + $.base64Encode(input_username.value) + '&_password=' + $.base64Encode(input_password.value)  + '&_read_only=' + $.base64Encode(input_read_only.value),
+				'_label=' + $.base64Encode(input_label.value) + '&_server_url=' + $.base64Encode(input_url.value) + '&_username=' + $.base64Encode(input_username.value) + '&_password=' + $.base64Encode(input_password.value)  + '&_read_only=' + $.base64Encode(input_read_only.checked === true ? '1' : '0'),
 				rcmail.display_message(rcmail.gettext('settings_init_server', 'carddav'), 'loading')
 			);
 		}
@@ -74,10 +74,10 @@ if (window.rcmail)
 	{
 		if (response.check)
 		{
-			$('#carddav_server_list').hide();
-			$('#carddav_server_list').html(response.server_list)
-			$('#carddav_server_list').show('normal');
-			
+			$('#carddav_server_list').slideUp();
+			$('#carddav_server_list').html(response.server_list);
+			$('#carddav_server_list').slideDown();
+
 			rcmail.display_message(response.message, 'confirmation');
 		}
 		else
