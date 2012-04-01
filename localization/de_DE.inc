@@ -4,6 +4,7 @@ $labels = array();
 $labels['settings']						= 'CardDAV Einstellungen';
 $labels['settings_server']				= 'CardDAV Server';
 $labels['settings_server_form']			= 'F&uuml;ge deinen CardDAV Server hinzu';
+$labels['settings_example_server_list']	= 'CardDAV Server Beispiel URLs';
 $labels['settings_tab']					= 'CardDAV';
 $labels['settings_label']				= 'Label';
 $labels['settings_read_only']			= 'Nur Lesezugriff';

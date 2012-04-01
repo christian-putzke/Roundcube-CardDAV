@@ -118,7 +118,8 @@ class carddav extends rcube_plugin
 	/**
 	 * Extend the original local_skin_path method with the default skin path as fallback
 	 *
-	 * @return	string	$skin_path	Roundcubes skin path
+	 * @param	boolean		$include_plugins_directory	Include plugins directory
+	 * @return	string		$skin_path					Roundcubes skin path
 	 */
 	public function local_skin_path($include_plugins_directory = false)
 	{
@@ -466,11 +467,50 @@ class carddav extends rcube_plugin
 		$output = html::div(
 			array('class' => 'box carddav'),
 			html::div(array('class' => 'boxtitle'), $this->gettext('settings')).
-			html::div(array('class' => 'boxcontent', 'id' => 'carddav_server_list'), $this->get_carddav_server_list()).
-			html::div(array('class' => 'boxcontent'), $boxcontent)
+				html::div(array('class' => 'boxcontent', 'id' => 'carddav_server_list'), $this->get_carddav_server_list()).
+				html::div(array('class' => 'boxcontent'), $boxcontent).
+				html::div(array('class' => 'boxcontent'), $this->get_carddav_url_list())
 		);
 
 		return $output;
+	}
+
+	/**
+	 * Render a CardDAV server example URL list
+	 *
+	 * @return	string	$content	HTML CardDAV server example URL list
+	 */
+	public function get_carddav_url_list()
+	{
+		$content = null;
+
+		$table = new html_table(array(
+			'cols'	=> 2,
+			'class'	=> 'carddav_server_list'
+		));
+
+		$table->add(array(), 'DAViCal');
+		$table->add(array(), 'https://example.com/{resource|principal|username}/{collection}/');
+
+		$table->add(array(), 'Apple Addressbook Server');
+		$table->add(array(), 'https://example.com/addressbooks/users/{resource|principal|username}/{collection}/');
+
+		$table->add(array(), 'memotoo');
+		$table->add(array(), 'https://sync.memotoo.com/cardDAV/');
+
+		$table->add(array(), 'SabreDAV');
+		$table->add(array(), 'https://example.com/addressbooks/{resource|principal|username}/{collection}/');
+
+		$table->add(array(), 'ownCloud');
+		$table->add(array(), 'https://example.com/apps/contacts/carddav.php/addressbooks/{resource|principal|username}/{collection}/');
+
+		$table->add(array(), 'SOGo');
+		$table->add(array(), 'https://example.com/SOGo/dav/{resource|principal|username}/Contacts/{collection}/');
+
+		$content .= html::div(array('class' => 'carddav_headline example_server_list'), $this->gettext('settings_example_server_list'));
+		$content .= html::div(array('class' => 'carddav_container'), $table->show());
+
+		return $content;
 	}
 
 	/**
