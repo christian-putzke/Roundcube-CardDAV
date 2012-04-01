@@ -1,67 +1,78 @@
-v0.3.1 to v0.4
-- added add-functionality for CardDAV-Contacts
-- added vCard import-functionality for CardDAV-Addressbooks
-- license change from LGPLv2 to AGPLv3
-- CardDAV-Backend class update to v0.4.9
-- added logging
-- each CardDAV-Server is now an own addressbook not a group of a global CardDAV-Addressbook like before
-- minor bugfixes
-- improved synchronization
+Changes from v0.4 to v0.5
+- Added automaticly synchronized CardDAV contacts via cronjob
+- Added larry skin support
+- Added list of CardDAV server URLs
+- Added read only option for CardDAV servers
+- Added SOGo support
+- Added package.xml
+- Major standard skin UI improvements
+- CardDAV backend class update to v0.5.1
+- Minor comment, phpdoc and documentation changes
 
-v0.3 to v0.3.1
-- bugfix: didn't merged vCards on edit correctly
+Changes from v0.3.1 to v0.4
+- Added add functionality for CardDAV contacts
+- Added vCard import functionality for CardDAV addressbooks
+- License change from LGPLv2 to AGPLv3
+- CardDAV backend class update to v0.4.9
+- Added logging functionality
+- Each CardDAV server is now an own addressbook not a group of a global CardDAV addressbook like before
+- Minor bugfixes
+- Improved synchronization
 
-changes from v0.2.5 to v0.3
-- added edit and delete functionality for CardDAV-Contacts
-- added sabreDAV support
-- added ownCloud support
-- CardDAV-Backend class update to v0.4.6
-- restructured and cleaned carddav_addressbook class (not completly done yet)
-- minor improvements (CURL install check, usability improvements, sync don't add empty vcards now, ...)
-- added IT and FR language files
+Changes from v0.3 to v0.3.1
+- Bugfix: didn't merged vCards on edit correctly
 
-changes from v0.2.4 to v0.2.5
-- bugfix: email and name can now be null
-- ajax POST contents are now base64 encoded
-- username and password can now be empty
-- minor localization changes
+Changes from v0.2.5 to v0.3
+- Added edit and delete functionality for CardDAV contacts
+- Added sabreDAV support
+- Added ownCloud support
+- CardDAV backend class update to v0.4.6
+- Restructured and cleaned carddav_addressbook class (not completly done yet)
+- Minor improvements (CURL install check, usability improvements, sync don't add empty vCards now, ...)
+- Added IT and FR language files
 
-changes from v0.2.3 to v0.2.4
-- bugfix: last_modified date is now STRING instead of INT
-- CardDAV-Backend class update to v0.4.2
+Changes from v0.2.4 to v0.2.5
+- Bugfix: email and name can now be null
+- Ajax POST contents are now base64 encoded
+- Username and password can now be empty
+- Minor localization changes
 
-changes from v0.2.2 to v0.2.3
-- added memotoo support
+Changes from v0.2.3 to v0.2.4
+- Bugfix: last_modified date is now STRING instead of INT
+- CardDAV backend class update to v0.4.2
+
+Changes from v0.2.2 to v0.2.3
+- Added memotoo support
 - CardDAV-Backend class update to v0.4.1
-- added addressbook search functionality
-- changed version naming
-- carddav_addressbook class restructured
+- Added addressbook search functionality
+- Changed version naming
+- Restructured carddav_addressbook class
 
-changes from 0.2.1 to 0.2.2
-- CardDAV-Backend class update to v0.4
-- added apple addressbook server support
+Changes from 0.2.1 to 0.2.2
+- CardDAV backend class update to v0.4
+- Added apple addressbook server support
 
-changes from 0.2 to 0.2.1
-- show CardDAV-Contacts list (addressbook pagination) bugfix
-- autocomplete CardDAV-Contacts groups bugfix
-- CardDAV-Groups will now be displayed correctly in the CardDAV-Contact detail view
-- hide CardDAV-Contacts sync button if no CardDAV-Servers were added
-- fallback skin path added "skins/default"
-- minor localization changes
+Changes from 0.2 to 0.2.1
+- Show CardDAV contacts list (addressbook pagination) bugfix
+- Autocomplete CardDAV contacts groups bugfix
+- CardDAV groups will now be displayed correctly in the CardDAV contact detail view
+- Hide CardDAV contacts sync button if no CardDAV servers were added
+- Fallback skin path added "skins/default"
+- Minor localization changes
 
-changes from 0.1 to 0.2
-- save / delete CardDAV-Server settings via ajax
-- minor class structure changes
-- minor localization changes
-- minor database changes
-- initial CardDAV-Contacts sync
-- addressbook integration (read only)
-- manuel CardDAV-Contacts sync (read only)
-- CardDAV-Backend class update to v0.3.4
-- autocomplete CardDAV-Contacts
+Changes from 0.1 to 0.2
+- Save / delete CardDAV server settings via ajax
+- Minor class structure changes
+- Minor localization changes
+- Minor database changes
+- Initial CardDAV contacts sync
+- Addressbook integration (read only)
+- Manuel CardDAV contacts sync (read only)
+- CardDAV backend class update to v0.3.4
+- Autocomplete CardDAV contacts
 
 release 0.1
-- save / delete CardDAV-Server settings
-- realtime CardDAV-Server check
-- multiple CardDAV-Server for each user
+- Save / delete CardDAV server settings
+- Realtime CardDAV server check
+- Multiple CardDAV server for each user
 - English and German localization
