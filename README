@@ -11,11 +11,11 @@ Features
 * You can read / add / delete / edit CardDAV contacts (vCards)
 * Autocomplete all CardDAV contacts within the compose email view
 * Search for all CardDAV contacts within the addressbook
+* Automaticly synchronized CardDAV contacts (just execute /plugins/carddav/cronjob/synchronize.php within the crontab)
 
 
 Planned features
 ----------------
-* Automaticly synchronized CardDAV contacts
 * Improved search for CardDAV contacts within the addressbook
 
 
