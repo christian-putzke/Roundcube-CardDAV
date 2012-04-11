@@ -1,3 +1,6 @@
+Changes from v0.5 to v0.5.1
+- Added PostgreSQL support (Thanks to B5r1oJ0A9G for the PostgreSQL statements!)
+
 Changes from v0.4 to v0.5
 - Added automaticly synchronized CardDAV contacts via cronjob
 - Added larry skin support

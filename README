@@ -21,13 +21,13 @@ Planned features
 
 Requirements
 ------------
-* SQL database
+* MySQL or PostgreSQL
 * CURL
 
 
 Installation
 ------------
-* Execute SQL statements from /plugins/carddav/SQL/mysql.sql
+* Execute SQL statements from /plugins/carddav/SQL/yourDatabase.sql
 * Add 'carddav' to the plugins array in /config/main.inc.php
 * Copy /plugins/carddav/config.inc.php.dist to /plugins/carddav/config.inc.php
 * Login into your roundcube webmail and add your CardDAV server in the settings
@@ -35,7 +35,12 @@ Installation
 
 Update
 ------
-* Execute new SQL statements from /plugins/carddav/SQL/mysql.update.sql
+* Execute new SQL statements from /plugins/carddav/SQL/yourDatabase.update.sql
+
+
+Special thanks
+--------------
+* B5r1oJ0A9G for the PostgreSQL statements!
 
 
 CardDAV server list

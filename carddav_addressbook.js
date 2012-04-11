@@ -6,7 +6,7 @@
  * @since 22.09.2011
  * @link http://www.graviox.de/
  * @link https://twitter.com/graviox/
- * @version 0.5
+ * @version 0.5.1
  * @license http://www.gnu.org/licenses/agpl.html GNU AGPL v3 or later
  *
  */
