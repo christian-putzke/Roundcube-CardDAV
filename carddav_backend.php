@@ -209,7 +209,7 @@ class carddav_backend
 	 */
 	public function get($include_vcards = true, $raw = false)
 	{
-		$response = $this->query($this->url, 'PROPFIND');
+		$response = $this->query($this->url, 'PROPFIND', null, null, false, array('Depth: 1'));
 
 		if ($response === false || $raw === true)
 		{
@@ -462,7 +462,7 @@ class carddav_backend
 	 * @param	boolean	$return_boolean		Return just a boolean
 	 * @return	string						CardDAV XML response
 	 */
-	private function query($url, $method, $content = null, $content_type = null, $return_boolean = false)
+	private function query($url, $method, $content = null, $content_type = null, $return_boolean = false, $http_header = array())
 	{
 		$this->curl_init();
 
@@ -482,11 +482,11 @@ class carddav_backend
 
 		if ($content_type !== null)
 		{
-			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array('Content-type: '.$content_type));
+			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array_merge(array('Content-type: '.$content_type), $http_header));
 		}
 		else
 		{
-			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array());
+			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array($http_header));
 		}
 
 		$response = curl_exec($this->curl);
