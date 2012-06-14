@@ -68,8 +68,8 @@ class carddav extends rcube_plugin
 		{
 			case 'settings':
 				$this->register_action('plugin.carddav-server', array($this, 'carddav_server'));
-				$this->register_action('plugin.carddav-server-save', array($this, 'carddav_server_save'));
-				$this->register_action('plugin.carddav-server-delete', array($this, 'carddav_server_delete'));
+				$this->register_action('plugin.carddav-server-save', array($this, 'carddav_server_save_from_settings'));
+				$this->register_action('plugin.carddav-server-delete', array($this, 'carddav_server_delete_from_settings'));
 				$this->include_script('carddav_settings.js');
 				$this->include_script('jquery.base64.js');
 			break;
@@ -374,16 +374,13 @@ class carddav extends rcube_plugin
 	/**
 	 * Check if it's possible to connect to the CardDAV server
 	 *
+	 * @param	array	$server CardDAV server settings
 	 * @return	boolean
 	 */
-	public function carddav_server_check_connection()
+	public function carddav_server_check_connection($server)
 	{
-		$url		= parse_input_value(base64_decode($_POST['_server_url']));
-		$username	= parse_input_value(base64_decode($_POST['_username']));
-		$password	= parse_input_value(base64_decode($_POST['_password']));
-
-		$carddav_backend = new carddav_backend($url);
-		$carddav_backend->set_auth($username, $password);
+		$carddav_backend = new carddav_backend($server['url']);
+		$carddav_backend->set_auth($server['username'], $server['password']);
 
 		return $carddav_backend->check_connection();
 	}
@@ -514,36 +511,60 @@ class carddav extends rcube_plugin
 	}
 
 	/**
-	 * Save CardDAV server and execute first CardDAV contact sync
+	/**
+	 * Add the given CardDAV server
 	 *
-	 * @return void
+	 * Settings must contain the following fields: url, username, password,
+	 * label, read_only.
+	 *
+	 * @settings array $server settings for the new CardDAV server
+	 * @return boolean TRUE if the operation suceeded
 	 */
-	public function carddav_server_save()
+	public function add_carddav_server($server)
 	{
 		$rcmail = rcmail::get_instance();
 
-		if ($this->carddav_server_check_connection())
+		$query = "
+			INSERT INTO
+				".get_table_name('carddav_server')." (user_id, url, username, password, label, read_only)
+			VALUES
+				(?, ?, ?, ?, ?, ?)
+		";
+
+		$rcmail->db->query(
+			$query, $rcmail->user->data['user_id'], $server['url'], $server['username'],
+			$rcmail->encrypt($server['password']), $server['label'], $server['read_only']);
+
+		if ($rcmail->db->affected_rows())
 		{
-			$user_id	= $rcmail->user->data['user_id'];
-			$url		= parse_input_value(base64_decode($_POST['_server_url']));
-			$username	= parse_input_value(base64_decode($_POST['_username']));
-			$password	= parse_input_value(base64_decode($_POST['_password']));
-			$label		= parse_input_value(base64_decode($_POST['_label']));
-			$read_only	= (int) parse_input_value(base64_decode($_POST['_read_only']));
+			$this->carddav_addressbook_sync($rcmail->db->insert_id(), false);
+			return TRUE;
+		} else {
+			return FALSE;
+		}
+	}
 
-			$query = "
-				INSERT INTO
-					".get_table_name('carddav_server')." (user_id, url, username, password, label, read_only)
-				VALUES
-					(?, ?, ?, ?, ?, ?)
-			";
+	/**
+	 * Save new CardDAV server from user given parameters
+	 *
+	 * @return void
+	 */
+	public function carddav_server_save_from_settings()
+	{
+		$rcmail = rcmail::get_instance();
 
-			$rcmail->db->query($query, $user_id, $url, $username, $rcmail->encrypt($password), $label, $read_only);
+		$server = array(
+			'url'		=> parse_input_value(base64_decode($_POST['_server_url'])),
+			'username'	=> parse_input_value(base64_decode($_POST['_username'])),
+			'password'	=> parse_input_value(base64_decode($_POST['_password'])),
+			'label'		=> parse_input_value(base64_decode($_POST['_label'])),
+			'read_only'	=> (int) parse_input_value(base64_decode($_POST['_read_only']))
+		);
 
-			if ($rcmail->db->affected_rows())
+		if ($this->carddav_server_check_connection($server))
+		{
+			if ($this->add_carddav_server($server))
 			{
-				$this->carddav_addressbook_sync($rcmail->db->insert_id(), false);
-
 				$rcmail->output->command('plugin.carddav_server_message', array(
 					'server_list' => $this->get_carddav_server_list(),
 					'message' => $this->gettext('settings_saved'),
@@ -570,13 +591,13 @@ class carddav extends rcube_plugin
 	/**
 	 * Delete CardDAV server and all related local contacts
 	 *
-	 * @return	void
+	 * @param	int	$carddav_server_id	CardDAV server id
+	 * @return	boolean				TRUE if the operation succeeded
 	 */
-	public function carddav_server_delete()
+	public function delete_carddav_server($carddav_server_id)
 	{
 		$rcmail = rcmail::get_instance();
 		$user_id = $rcmail->user->data['user_id'];
-		$carddav_server_id = parse_input_value(base64_decode($_POST['_carddav_server_id']));
 
 		$query = "
 			DELETE FROM
@@ -590,6 +611,25 @@ class carddav extends rcube_plugin
 		$rcmail->db->query($query, $user_id, $carddav_server_id);
 
 		if ($rcmail->db->affected_rows())
+		{
+			return TRUE;
+		}
+		return FALSE;
+	}
+
+
+	/**
+	 * Delete CardDAV server from user selection
+	 *
+	 * @return	void
+	 */
+	public function carddav_server_delete_from_settings()
+	{
+		$rcmail = rcmail::get_instance();
+		$user_id = $rcmail->user->data['user_id'];
+		$carddav_server_id = parse_input_value(base64_decode($_POST['_carddav_server_id']));
+
+		if ($this->delete_carddav_server($carddav_server_id))
 		{
 			$rcmail->output->command('plugin.carddav_server_message', array(
 				'server_list' => $this->get_carddav_server_list(),
