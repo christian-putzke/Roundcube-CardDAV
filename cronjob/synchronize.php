@@ -123,7 +123,7 @@ class carddav_synchronization_cronjob
 			foreach ($servers as $server)
 			{
 				$rcmail->user->data['user_id'] = $server['user_id'];
-				$carddav_addressbook = new carddav_addressbook($server['carddav_server_id'], $server['label']);
+				$carddav_addressbook = new carddav_addressbook($server['carddav_server_id'], $server['label'], false);
 				$carddav_addressbook->carddav_addressbook_sync($server);
 			}
 		}
