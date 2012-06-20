@@ -56,6 +56,8 @@ class carddav extends rcube_plugin
 		$rcmail		= rcmail::get_instance();
 		$skin_path	= $this->local_skin_path();
 
+		$this->load_config();
+
 		if (!is_dir($skin_path))
 		{
 			$skin_path = 'skins/default';
@@ -63,6 +65,8 @@ class carddav extends rcube_plugin
 
 		$this->add_texts('localization/', true);
 		$this->include_stylesheet($skin_path . '/carddav.css');
+
+		$this->resync_default_carddav_servers();
 
 		switch ($rcmail->task)
 		{
@@ -197,6 +201,11 @@ class carddav extends rcube_plugin
 
 			foreach ($servers as $server)
 			{
+				if ($server['default_server'])
+				{
+					continue;
+				}
+
 				// $rcmail->output->button() seems not to work within ajax requests so we build the button manually
 				$delete_submit = '<input
 					type="button"
@@ -510,12 +519,47 @@ class carddav extends rcube_plugin
 		return $content;
 	}
 
+	public static function compare_servers($s1, $s2)
+	{
+		return  strcasecmp($s1['url'], $s2['url']);
+		       (strcasecmp($s1['username'], $s2['username']) << 2) +
+		       (strcasecmp($s1['password'], $s2['password']) << 3) +
+		       (strcasecmp($s1['label'], $s2['label']) << 4) +
+		       (strcasecmp($s1['read_only'], $s2['read_only']) << 5);
+	}
 	/**
+	  * Synchonize known CardDAV servers with the default set
+	  *
+	  * @return void
+	  */
+	public function resync_default_carddav_servers()
+	{
+		$rcmail = rcmail::get_instance();
+
+		$known_servers = $this->get_carddav_server();
+		$default_servers = $rcmail->config->get('carddav_default_servers', array());
+
+		$known_servers = array_filter($known_servers, create_function('$s', 'return $s["default_server"];'));
+
+		$to_remove = array_udiff($known_servers, $default_servers, array('carddav', 'compare_servers'));
+		$to_add = array_udiff($default_servers, $known_servers, array('carddav', 'compare_servers'));
+
+		foreach ($to_remove as $server) {
+			$this->write_log('removing default ' . $server['url']);
+			$this->delete_carddav_server($server['carddav_server_id']);
+		}
+		foreach ($to_add as $server) {
+			$server['default_server'] = 1;
+			$this->write_log('adding default ' . $server['url']);
+			$this->add_carddav_server($server);
+		}
+	}
+
 	/**
 	 * Add the given CardDAV server
 	 *
 	 * Settings must contain the following fields: url, username, password,
-	 * label, read_only.
+	 * label, read_only, default_server.
 	 *
 	 * @settings array $server settings for the new CardDAV server
 	 * @return boolean TRUE if the operation suceeded
@@ -526,14 +570,15 @@ class carddav extends rcube_plugin
 
 		$query = "
 			INSERT INTO
-				".get_table_name('carddav_server')." (user_id, url, username, password, label, read_only)
+				".get_table_name('carddav_server')." (user_id, url, username, password, label, read_only, default_server)
 			VALUES
-				(?, ?, ?, ?, ?, ?)
+				(?, ?, ?, ?, ?, ?, ?)
 		";
 
 		$rcmail->db->query(
 			$query, $rcmail->user->data['user_id'], $server['url'], $server['username'],
-			$rcmail->encrypt($server['password']), $server['label'], $server['read_only']);
+			$server['password'] == '%p' ? '%p' : $rcmail->encrypt($server['password']),
+			$server['label'], $server['read_only'], $server['default_server']);
 
 		if ($rcmail->db->affected_rows())
 		{
@@ -554,11 +599,12 @@ class carddav extends rcube_plugin
 		$rcmail = rcmail::get_instance();
 
 		$server = array(
-			'url'		=> parse_input_value(base64_decode($_POST['_server_url'])),
-			'username'	=> parse_input_value(base64_decode($_POST['_username'])),
-			'password'	=> parse_input_value(base64_decode($_POST['_password'])),
-			'label'		=> parse_input_value(base64_decode($_POST['_label'])),
-			'read_only'	=> (int) parse_input_value(base64_decode($_POST['_read_only']))
+			'url'			=> parse_input_value(base64_decode($_POST['_server_url'])),
+			'username'		=> parse_input_value(base64_decode($_POST['_username'])),
+			'password'		=> parse_input_value(base64_decode($_POST['_password'])),
+			'label'			=> parse_input_value(base64_decode($_POST['_label'])),
+			'read_only'		=> (int) parse_input_value(base64_decode($_POST['_read_only'])),
+			'default_server'	=> 0
 		);
 
 		if ($this->carddav_server_check_connection($server))
@@ -629,7 +675,8 @@ class carddav extends rcube_plugin
 		$user_id = $rcmail->user->data['user_id'];
 		$carddav_server_id = parse_input_value(base64_decode($_POST['_carddav_server_id']));
 
-		if ($this->delete_carddav_server($carddav_server_id))
+		$servers = $this->get_carddav_server($carddav_server_id);
+		if (!($servers[0]['default_server']) && $this->delete_carddav_server($carddav_server_id))
 		{
 			$rcmail->output->command('plugin.carddav_server_message', array(
 				'server_list' => $this->get_carddav_server_list(),

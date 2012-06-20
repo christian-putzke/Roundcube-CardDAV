@@ -715,6 +715,7 @@ class carddav_addressbook extends rcube_addressbook
 	private function get_backend($server) {
 		$rcmail = rcmail::get_instance();
 
+		$this->interpolate_settings($server);
 		$carddav_backend = new carddav_backend($server['url']);
 		$carddav_backend->set_auth($server['username'], $rcmail->decrypt($server['password']));
 		if ($carddav_backend->check_connection())
@@ -725,6 +726,29 @@ class carddav_addressbook extends rcube_addressbook
 		{
 			return false;
 		}
+	}
+
+	/**
+	 * When 'default_server' is not set to 0, this will replace macros
+	 * used in server settings.
+	 *
+	 * @param	array		$server					CarDAV server array
+	 */
+	private function interpolate_settings(&$server)
+	{
+		if ($server['default_server'] == 0) {
+			return;
+		}
+
+		$rcmail = rcmail::get_instance();
+
+		$server['username'] = str_replace('%u', $_SESSION['username'], $server['username']);
+		$server['username'] = str_replace('%l', $rcmail->user->get_username('local'), $server['username']);
+		$server['username'] = str_replace('%d', $rcmail->user->get_username('domain'), $server['username']);
+		$server['password'] = str_replace('%p', $_SESSION['password'], $server['password']);
+		$server['url'] = str_replace('%u', $_SESSION['username'], $server['url']);
+		$server['url'] = str_replace('%l', $_SESSION['username'], $server['url']);
+		$server['url'] = str_replace('%d', $_SESSION['username'], $server['url']);
 	}
 
 	/**
