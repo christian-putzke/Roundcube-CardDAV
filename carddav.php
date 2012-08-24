@@ -72,6 +72,7 @@ class carddav extends rcube_plugin
 				$this->register_action('plugin.carddav-server-delete', array($this, 'carddav_server_delete'));
 				$this->include_script('carddav_settings.js');
 				$this->include_script('jquery.base64.js');
+				$this->add_hook('addressbooks_list', array($this, 'get_carddav_addressbook_sources'));
 			break;
 
 			case 'addressbook':
