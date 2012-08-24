@@ -502,7 +502,7 @@ class carddav extends rcube_plugin
 		$table->add(array(), 'https://example.com/addressbooks/{resource|principal|username}/{collection}/');
 
 		$table->add(array(), 'ownCloud');
-		$table->add(array(), 'https://example.com/apps/contacts/carddav.php/addressbooks/{resource|principal|username}/{collection}/');
+		$table->add(array(), 'https://example.com/remote.php/carddav/addressbooks/{resource|principal|username}/{collection}/');
 
 		$table->add(array(), 'SOGo');
 		$table->add(array(), 'https://example.com/SOGo/dav/{resource|principal|username}/Contacts/{collection}/');
