@@ -653,8 +653,14 @@ class carddav_addressbook extends rcube_addressbook
 		if ($carddav_backend->check_connection())
 		{
 			$vcard_id = $carddav_backend->add($vcard);
+			if(false === $vcard_id) {
+	                	return false;
+                        }
+			
 			$this->carddav_addressbook_sync($server, false, $vcard_id);
 
+			// something is wrong here? It returns false on my server
+			// but after refreshing the webpage the contact shows up ;)
 			return $rcmail->db->insert_id(get_table_name('carddav_contacts'));
 		}
 
