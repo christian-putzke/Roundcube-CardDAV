@@ -230,7 +230,10 @@ class carddav_backend
 	public function get_vcard($vcard_id)
 	{
 		$vcard_id = str_replace('.vcf', null, $vcard_id);
-		return $this->query($this->url . $vcard_id . '.vcf', 'GET');
+		$vCard = $this->query($this->url . $vcard_id . $this->ext, 'GET');
+		if (empty($vCard))
+                       $vCard = $this->query($this->url . $vcard_id, 'GET');
+                return $vCard;
 	}
 
 	/**
