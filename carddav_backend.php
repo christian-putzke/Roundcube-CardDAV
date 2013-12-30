@@ -209,7 +209,15 @@ class carddav_backend
 	 */
 	public function get($include_vcards = true, $raw = false)
 	{
-		$response = $this->query($this->url, 'PROPFIND');
+		$content = '<?xml version="1.0" encoding="utf-8" ?><D:sync-collection xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:carddav"><D:sync-token></D:sync-token><D:prop><D:getcontenttype/><D:getetag/><D:allprop/><C:address-data><C:allprop/></C:address-data></D:prop><C:filter/></D:sync-collection>';
+		$content_type = 'application/xml';
+		$response = $this->query($this->url, 'REPORT', $content, $content_type);
+
+		// fallback if sync-collection REPORT not supported
+		if ($response === false)
+		{
+			$response = $this->query($this->url, 'PROPFIND');
+		}
 
 		if ($response === false || $raw === true)
 		{
