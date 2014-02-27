@@ -367,15 +367,11 @@ class carddav_addressbook extends rcube_addressbook
 	 */
 	public function carddav_addressbook_sync($server, $carddav_contact_id = null, $vcard_id = null)
 	{
-		$rcmail = rcmail::get_instance();
 		$any_data_synced = false;
 
 		self::write_log('Starting CardDAV-Addressbook synchronization');
 
-		$carddav_backend = new carddav_backend($server['url']);
-		$carddav_backend->set_auth($server['username'], $rcmail->decrypt($server['password']));
-
-		if ($carddav_backend->check_connection())
+		if (false !== ($carddav_backend = $this->get_backend($server)))
 		{
 			self::write_log('Connected to the CardDAV-Server ' . $server['url']);
 
@@ -647,15 +643,16 @@ class carddav_addressbook extends rcube_addressbook
 	{
 		$rcmail = rcmail::get_instance();
 		$server = current(carddav::get_carddav_server($this->carddav_server_id));
-		$carddav_backend = new carddav_backend($server['url']);
-		$carddav_backend->set_auth($server['username'], $rcmail->decrypt($server['password']));
 
-		if ($carddav_backend->check_connection())
+		if (false !== ($carddav_backend = $this->get_backend($server)))
 		{
 			$vcard_id = $carddav_backend->add($vcard);
-			$this->carddav_addressbook_sync($server, false, $vcard_id);
+			if($vcard_id !== false)
+			{
+                $this->carddav_addressbook_sync($server, false, $vcard_id);
 
-			return $rcmail->db->insert_id(get_table_name('carddav_contacts'));
+                return $rcmail->db->insert_id(get_table_name('carddav_contacts'));
+            }
 		}
 
 		return false;
@@ -673,10 +670,8 @@ class carddav_addressbook extends rcube_addressbook
 		$rcmail = rcmail::get_instance();
 		$contact = $this->get_carddav_addressbook_contact($carddav_contact_id);
 		$server = current(carddav::get_carddav_server($this->carddav_server_id));
-		$carddav_backend = new carddav_backend($server['url']);
-		$carddav_backend->set_auth($server['username'], $rcmail->decrypt($server['password']));
 
-		if ($carddav_backend->check_connection())
+		if (false !== ($carddav_backend = $this->get_backend($server)))
 		{
 			$carddav_backend->update($vcard, $contact['vcard_id']);
 			$this->carddav_addressbook_sync($server, $carddav_contact_id, $contact['vcard_id']);
@@ -697,10 +692,8 @@ class carddav_addressbook extends rcube_addressbook
 	{
 		$rcmail = rcmail::get_instance();
 		$server = current(carddav::get_carddav_server($this->carddav_server_id));
-		$carddav_backend = new carddav_backend($server['url']);
-		$carddav_backend->set_auth($server['username'], $rcmail->decrypt($server['password']));
 
-		if ($carddav_backend->check_connection())
+		if (false !== ($carddav_backend = $this->get_backend($server)))
 		{
 			foreach ($carddav_contact_ids as $carddav_contact_id)
 			{
@@ -713,6 +706,52 @@ class carddav_addressbook extends rcube_addressbook
 		}
 
 		return false;
+	}
+
+
+	/**
+	 * Get CardDAV_Backend for the given server
+	 *
+	 * @param	array	server connection parameters
+	 * @return	mixed	either a CardDAV_Backend or FALSE if the connection fails
+	 */
+	private function get_backend($server) {
+		$rcmail = rcmail::get_instance();
+
+		$this->interpolate_settings($server);
+		$carddav_backend = new carddav_backend($server['url']);
+		$carddav_backend->set_auth($server['username'], $rcmail->decrypt($server['password']));
+		if ($carddav_backend->check_connection())
+		{
+			return $carddav_backend;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	/**
+	 * When 'default_server' is not set to 0, this will replace macros
+	 * used in server settings.
+	 *
+	 * @param	array		$server					CarDAV server array
+	 */
+	private function interpolate_settings(&$server)
+	{
+		if ($server['default_server'] == 0) {
+			return;
+		}
+
+		$rcmail = rcmail::get_instance();
+
+		$server['username'] = str_replace('%u', $_SESSION['username'], $server['username']);
+		$server['username'] = str_replace('%l', $rcmail->user->get_username('local'), $server['username']);
+		$server['username'] = str_replace('%d', $rcmail->user->get_username('domain'), $server['username']);
+		$server['password'] = str_replace('%p', $_SESSION['password'], $server['password']);
+		$server['url'] = str_replace('%u', $_SESSION['username'], $server['url']);
+		$server['url'] = str_replace('%l', $_SESSION['username'], $server['url']);
+		$server['url'] = str_replace('%d', $_SESSION['username'], $server['url']);
 	}
 
 	/**

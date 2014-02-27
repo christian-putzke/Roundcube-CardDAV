@@ -3,3 +3,24 @@
 	// CardDAV database tables
 	$rcmail_config['db_table_carddav_server'] = 'carddav_server';
 	$rcmail_config['db_table_carddav_contacts'] = 'carddav_contacts';
+
+// A list of default CardDAV servers
+//
+// Each server needs to have the following fields: url, username, password,
+// label, read_only.
+//
+// In the 'username' and 'url' field:
+//   %u is replaced with the username (from session info)
+//   %l is replaced with the local part of the username (if the username is an email address)
+//   %p is replaced with the domain part of the username (if the usrename is an email address or default mail domain if not)
+//
+// In the 'password' field:
+//   %p is replaced with the password (from session info)
+//
+$rcmail_config['carddav_default_servers'] = array(
+  //array('url'       => 'https://davical.example.net/%u/addresses/',
+  //      'username'  => '%u',
+  //      'password'  => '%p',
+  //      'label'     => 'Default CardDAV',
+  //      'read_only' => 0),
+);

@@ -74,7 +74,7 @@
  * Apple Addressbook Server: https://example.com/addressbooks/users/{resource|principal|username}/{collection}/
  * memotoo: https://sync.memotoo.com/cardDAV/
  * SabreDAV: https://example.com/addressbooks/{resource|principal|username}/{collection}/
- * ownCloud: https://example.com/apps/contacts/carddav.php/addressbooks/{resource|principal|username}/{collection}/
+ * ownCloud: https://example.com/remote.php/carddav/addressbooks/{resource|principal|username}/{collection}/
  * SOGo: http://sogo-demo.inverse.ca/SOGo/dav/{resource|principal|username}/Contacts/{collection}/
  *
  *
@@ -209,7 +209,14 @@ class carddav_backend
 	 */
 	public function get($include_vcards = true, $raw = false)
 	{
-		$response = $this->query($this->url, 'PROPFIND');
+		$content = '<?xml version="1.0" encoding="utf-8" ?><D:sync-collection xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:carddav"><D:sync-token></D:sync-token><D:prop><D:getcontenttype/><D:getetag/><D:allprop/><C:address-data><C:allprop/></C:address-data></D:prop><C:filter/></D:sync-collection>';
+		$content_type = 'application/xml';
+		$response = $this->query($this->url, 'REPORT', $content, $content_type);
+        if ($response === false)
+        {
+            // fallback if sync-collection REPORT not supported
+            $response = $this->query($this->url, 'PROPFIND');
+        }
 
 		if ($response === false || $raw === true)
 		{
@@ -278,7 +285,7 @@ class carddav_backend
 	*/
 	public function check_connection()
 	{
-		return $this->query($this->url, 'OPTIONS', null, null, true);
+        return true;
 	}
 
 	/**
@@ -316,7 +323,11 @@ class carddav_backend
 		$vcard_id = $this->generate_vcard_id();
 		$vcard = $this->clean_vcard($vcard);
 
-		if ($this->query($this->url . $vcard_id . '.vcf', 'PUT', $vcard, 'text/vcard', true) === true)
+        // ADD UID
+        $vc = new rcube_vcard($vcard);
+        $vc->set_raw('UID', $vcard_id);
+
+        if ($this->query($this->url . $vcard_id . '.vcf', 'PUT', $vc->export(), 'text/vcard', true) === true)
 		{
 			return $vcard_id;
 		}
