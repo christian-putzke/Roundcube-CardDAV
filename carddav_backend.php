@@ -315,8 +315,12 @@ class carddav_backend
 	{
 		$vcard_id = $this->generate_vcard_id();
 		$vcard = $this->clean_vcard($vcard);
+		
+		// ADD UID
+		$vc = new rcube_vcard($vcard);
+                $vc->set_raw('UID', $vcard_id);
 
-		if ($this->query($this->url . $vcard_id . '.vcf', 'PUT', $vcard, 'text/vcard', true) === true)
+		if ($this->query($this->url . $vcard_id . '.vcf', 'PUT', $vc->export(), 'text/vcard', true) === true)
 		{
 			return $vcard_id;
 		}
