@@ -74,7 +74,7 @@
  * Apple Addressbook Server: https://example.com/addressbooks/users/{resource|principal|username}/{collection}/
  * memotoo: https://sync.memotoo.com/cardDAV/
  * SabreDAV: https://example.com/addressbooks/{resource|principal|username}/{collection}/
- * ownCloud: https://example.com/apps/contacts/carddav.php/addressbooks/{resource|principal|username}/{collection}/
+ * ownCloud: https://example.com/remote.php/carddav/addressbooks/{resource|principal|username}/{collection}/
  * SOGo: http://sogo-demo.inverse.ca/SOGo/dav/{resource|principal|username}/Contacts/{collection}/
  *
  *
