@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS "carddav_server" (
 	"password" varchar(128) NOT NULL,
 	"label" varchar(128) NOT NULL,
 	"read_only" int NOT NULL,
+	"default_server" int NOT NULL,
 	PRIMARY KEY ("carddav_server_id")
 );
 

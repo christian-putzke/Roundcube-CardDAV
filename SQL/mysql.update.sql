@@ -15,3 +15,4 @@ ADD `surname` VARCHAR( 128 ) NULL DEFAULT NULL AFTER `firstname` ;
 
 // updates from version 0.5
 ALTER TABLE `carddav_server` ADD `read_only` tinyint(1) NOT NULL AFTER `label`;
+ALTER TABLE `carddav_server` ADD `default_server` tinyint(1) NOT NULL AFTER `read_only`;
