@@ -645,7 +645,7 @@ class carddav_addressbook extends rcube_addressbook
 		if ($carddav_backend->check_connection())
 		{
 			$vcard_id = $carddav_backend->add($vcard);
-			$this->carddav_addressbook_sync($server, false, $vcard_id);
+			$this->carddav_addressbook_sync($server, null, $vcard_id);
 
 			return $rcmail->db->insert_id(get_table_name('carddav_contacts'));
 		}
