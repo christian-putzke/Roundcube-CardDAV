@@ -162,12 +162,9 @@ class carddav_addressbook extends rcube_addressbook
 			$result = $rcmail->db->limitquery($query, $limit['start'], $limit['length'], $rcmail->user->data['user_id'], $this->carddav_server_id);
 		}
 
-		if ($rcmail->db->num_rows($result))
+		while ($contact = $rcmail->db->fetch_assoc($result))
 		{
-			while ($contact = $rcmail->db->fetch_assoc($result))
-			{
-				$carddav_addressbook_contacts[$contact['vcard_id']] = $contact;
-			}
+			$carddav_addressbook_contacts[$contact['vcard_id']] = $contact;
 		}
 
 		return $carddav_addressbook_contacts;
@@ -196,12 +193,7 @@ class carddav_addressbook extends rcube_addressbook
 
 		$result = $rcmail->db->query($query, $rcmail->user->data['user_id'], $carddav_contact_id);
 
-		if ($rcmail->db->num_rows($result))
-		{
-			return $rcmail->db->fetch_assoc($result);
-		}
-
-		return false;
+		return $rcmail->db->fetch_assoc($result);
 	}
 
 	/**
@@ -215,7 +207,7 @@ class carddav_addressbook extends rcube_addressbook
 
 		$query = "
 			SELECT
-				*
+				count(*)
 			FROM
 				".get_table_name('carddav_contacts')."
 			WHERE
@@ -228,8 +220,8 @@ class carddav_addressbook extends rcube_addressbook
 		";
 
 		$result = $rcmail->db->query($query, $rcmail->user->data['user_id'], $this->carddav_server_id);
-
-		return $rcmail->db->num_rows($result);
+		$count = $rcmail->db->fetch_array($result);
+		return $count[0];
 	}
 
 	/**
@@ -791,16 +783,12 @@ class carddav_addressbook extends rcube_addressbook
 
 		$result = $rcmail->db->query($query, $rcmail->user->data['user_id']);
 
-		if ($rcmail->db->num_rows($result))
+		while ($contact = $rcmail->db->fetch_assoc($result))
 		{
-			while ($contact = $rcmail->db->fetch_assoc($result))
-			{
-				$record['name'] = $contact['name'];
-				$record['email'] = explode(', ', $contact['email']);
+			$record['name'] = $contact['name'];
+			$record['email'] = explode(', ', $contact['email']);
 
-				$this->result->add($record);
-			}
-
+			$this->result->add($record);
 		}
 
 		return $this->result;

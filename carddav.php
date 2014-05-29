@@ -353,7 +353,7 @@ class carddav extends rcube_plugin
 
 		$query = "
 			SELECT
-				*
+				count(*)
 			FROM
 				".get_table_name('carddav_server')."
 			WHERE
@@ -362,14 +362,9 @@ class carddav extends rcube_plugin
 
 		$result = $rcmail->db->query($query, $user_id);
 
-		if ($rcmail->db->num_rows($result))
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		$count = $rcmail->db->fetch_array($result);
+		return ($count[0] > 0);
+
 	}
 
 	/**
