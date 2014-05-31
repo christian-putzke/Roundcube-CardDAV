@@ -143,7 +143,7 @@ class carddav_addressbook extends rcube_addressbook
 			SELECT
 				*
 			FROM
-				".get_table_name('carddav_contacts')."
+				".$rcmail->db->table_name('carddav_contacts')."
 			WHERE
 				user_id = ?
 			AND
@@ -184,7 +184,7 @@ class carddav_addressbook extends rcube_addressbook
 			SELECT
 				*
 			FROM
-				".get_table_name('carddav_contacts')."
+				".$rcmail->db->table_name('carddav_contacts')."
 			WHERE
 				user_id = ?
 			AND
@@ -209,7 +209,7 @@ class carddav_addressbook extends rcube_addressbook
 			SELECT
 				count(*)
 			FROM
-				".get_table_name('carddav_contacts')."
+				".$rcmail->db->table_name('carddav_contacts')."
 			WHERE
 				user_id = ?
 			AND
@@ -499,7 +499,7 @@ class carddav_addressbook extends rcube_addressbook
 
 		$query = "
 			INSERT INTO
-				".get_table_name('carddav_contacts')." (carddav_server_id, user_id, etag, last_modified, vcard_id, vcard, words, firstname, surname, name, email)
+				".$rcmail->db->table_name('carddav_contacts')." (carddav_server_id, user_id, etag, last_modified, vcard_id, vcard, words, firstname, surname, name, email)
 			VALUES
 				(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		";
@@ -549,7 +549,7 @@ class carddav_addressbook extends rcube_addressbook
 
 		$query = "
 			UPDATE
-				".get_table_name('carddav_contacts')."
+				".$rcmail->db->table_name('carddav_contacts')."
 			SET
 				etag = ?,
 				last_modified = ?,
@@ -606,7 +606,7 @@ class carddav_addressbook extends rcube_addressbook
 
 		$query = "
 			DELETE FROM
-				".get_table_name('carddav_contacts')."
+				".$rcmail->db->table_name('carddav_contacts')."
 			WHERE
 				vcard_id = ?
 			AND
@@ -647,7 +647,7 @@ class carddav_addressbook extends rcube_addressbook
 			$vcard_id = $carddav_backend->add($vcard);
 			$this->carddav_addressbook_sync($server, null, $vcard_id);
 
-			return $rcmail->db->insert_id(get_table_name('carddav_contacts'));
+			return $rcmail->db->insert_id($rcmail->db->table_name('carddav_contacts'));
 		}
 
 		return false;
@@ -773,7 +773,7 @@ class carddav_addressbook extends rcube_addressbook
 			SELECT
 				*
 			FROM
-				".get_table_name('carddav_contacts')."
+				".$rcmail->db->table_name('carddav_contacts')."
 			WHERE
 				user_id = ?
 			".$this->get_search_set()."
