@@ -214,10 +214,7 @@ class carddav_addressbook extends rcube_addressbook
 				user_id = ?
 			AND
 				carddav_server_id = ?
-				".$this->get_search_set()."
-			ORDER BY
-				name ASC
-		";
+				".$this->get_search_set();
 
 		$result = $rcmail->db->query($query, $rcmail->user->data['user_id'], $this->carddav_server_id);
 		$count = $rcmail->db->fetch_array($result);
