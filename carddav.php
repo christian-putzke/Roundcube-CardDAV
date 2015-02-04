@@ -373,23 +373,6 @@ class carddav extends rcube_plugin
 	}
 
 	/**
-	 * Check if it's possible to connect to the CardDAV server
-	 *
-	 * @return	boolean
-	 */
-	public function carddav_server_check_connection()
-	{
-		$url		= parse_input_value(base64_decode($_POST['_server_url']));
-		$username	= parse_input_value(base64_decode($_POST['_username']));
-		$password	= parse_input_value(base64_decode($_POST['_password']));
-
-		$carddav_backend = new carddav_backend($url);
-		$carddav_backend->set_auth($username, $password);
-
-		return $carddav_backend->check_connection();
-	}
-
-	/**
 	 * Render CardDAV server settings formular and register JavaScript actions
 	 *
 	 * @return	string	HTML CardDAV server formular
@@ -508,6 +491,9 @@ class carddav extends rcube_plugin
 		$table->add(array(), 'SOGo');
 		$table->add(array(), 'https://example.com/SOGo/dav/{resource|principal|username}/Contacts/{collection}/');
 
+		$table->add(array(), 'Apple iCloud');
+		$table->add(array(), 'https://contacts.icloud.com/');
+
 		$content .= html::div(array('class' => 'carddav_headline example_server_list'), $this->gettext('settings_example_server_list'));
 		$content .= html::div(array('class' => 'carddav_container'), $table->show());
 
@@ -523,12 +509,27 @@ class carddav extends rcube_plugin
 	{
 		$rcmail = rcmail::get_instance();
 
-		if ($this->carddav_server_check_connection())
+
+		$url		= parse_input_value(base64_decode($_POST['_server_url']));
+		$username	= parse_input_value(base64_decode($_POST['_username']));
+		$password	= parse_input_value(base64_decode($_POST['_password']));
+		
+		$carddav_backend = new carddav_backend($url);
+		$carddav_backend->set_auth($username, $password);
+
+		if ($url == 'https://contacts.icloud.com/') {
+			$principal_id = $carddav_backend->retrieve_icloud_principal_id();
+			if (is_numeric($principal_id )) {
+				$url = 'https://contacts.icloud.com/'.$principal_id.'/carddavhome/card/';
+				$carddav_backend = new carddav_backend($url);
+				$carddav_backend->set_auth($username, $password);
+			}
+		}
+
+		if ($carddav_backend->check_connection())
 		{
 			$user_id	= $rcmail->user->data['user_id'];
-			$url		= parse_input_value(base64_decode($_POST['_server_url']));
-			$username	= parse_input_value(base64_decode($_POST['_username']));
-			$password	= parse_input_value(base64_decode($_POST['_password']));
+			
 			$label		= parse_input_value(base64_decode($_POST['_label']));
 			$read_only	= (int) parse_input_value(base64_decode($_POST['_read_only']));
 
