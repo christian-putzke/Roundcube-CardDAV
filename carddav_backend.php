@@ -209,7 +209,7 @@ class carddav_backend
 	 */
 	public function get($include_vcards = true, $raw = false)
 	{
-		$response = $this->query($this->url, 'PROPFIND');
+		$response = $this->query($this->url, 'PROPFIND', '', 'text/xml');
 
 		if ($response === false || $raw === true)
 		{
@@ -278,7 +278,11 @@ class carddav_backend
 	*/
 	public function check_connection()
 	{
-		return $this->query($this->url, 'OPTIONS', null, null, true);
+		if (strpos($this->url,'https://contacts.icloud.com/')!==false) {
+			return $this->query(substr($this->url, 0, strlen($this->url)-5 ), 'OPTIONS', null, null, true);
+		} else {
+			return $this->query($this->url, 'OPTIONS', null, null, true);
+		}
 	}
 
 	/**
@@ -482,7 +486,7 @@ class carddav_backend
 
 		if ($content_type !== null)
 		{
-			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array('Content-type: '.$content_type));
+			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array('Content-type: '.$content_type, 'Depth: 1'));
 		}
 		else
 		{
@@ -538,6 +542,23 @@ class carddav_backend
 		{
 			return $id;
 		}
+	}
+
+	/**
+	 * Returns the icloud contacts url
+	 *
+	 * @return	string	icloud contacts url
+	 */
+	public function retrieve_icloud_principal_id() {
+		$principal_request="<A:propfind xmlns:A='DAV:'>
+								<A:prop>
+									<A:current-user-principal/>
+								</A:prop>
+							</A:propfind>";
+		$this->query($this->url, 'PROPFIND', '', 'text/xml');
+		$response = simplexml_load_string($this->query($this->url, 'PROPFIND', $principal_request, 'text/xml'));
+		$principal_url= $response->response[0]->propstat[0]->prop[0]->{'current-user-principal'}->href;
+		return explode("/", $principal_url)[1];
 	}
 
 	/**
