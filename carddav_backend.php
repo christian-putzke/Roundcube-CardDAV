@@ -197,7 +197,14 @@ class carddav_backend
 	{
 		$this->username = $username;
 		$this->password = $password;
-		$this->auth = $username . ':' . $password;
+		
+		if(strcasecmp($password,"%p")==0){
+			//If password string is "%p", replace with Roundcube session password
+			$rcube = rcube::get_instance();
+			$this->password = $rcube->get_user_password();
+		}
+		
+		$this->auth = $this->username . ':' . $this->password;
 	}
 
 	/**
