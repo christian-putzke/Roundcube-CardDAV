@@ -2,6 +2,14 @@ Description
 -----------
 This is a CardDAV-Implementation for roundcube 0.6 or higher.
 
+Fork of christian-putzke/Roundcube-CardDAV 
+Changes:
+--------
+-vcard cleanup (replace ITEMX.ADR by ADR)
+-Update french translation
+-Ability to use Roundcube session password for CardDav authentication
+   if carddav server and imap server share the same password, password changes no need to modify carddav preferences
+   in password field, "%p" is dynamicaly replaced by roundcube session password
 
 Features
 --------
