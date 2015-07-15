@@ -495,6 +495,21 @@ class carddav_addressbook extends rcube_addressbook
 	}
 
 	/**
+	 * Normalize vcard data
+	 * @param string vCard
+	 * @return string Cleaned vcard
+	 */
+	private function cleanup($vcard){
+		// Replace item1.ADR with ADR
+		$vcard = preg_replace('/^item\d*\./mi', '', $vcard);
+		
+		// if N doesn't have any semicolons, add some 
+		$vcard = preg_replace('/^(N:[^;\R]*)$/m', '\1;;;;', $vcard);
+		
+		return $vcard;
+	}
+
+	/**
 	 * Adds a vCard to the CardDAV addressbook
 	 *
 	 * @param	array	$carddav_content	CardDAV contents (vCard id, etag, last modified, etc.)
@@ -503,7 +518,8 @@ class carddav_addressbook extends rcube_addressbook
 	private function carddav_addressbook_add($carddav_content)
 	{
 		$rcmail = rcmail::get_instance();
-		$vcard = new rcube_vcard($carddav_content['vcard']);
+		$vcardStr = $this->cleanup($carddav_content['vcard']);
+        $vcard = new rcube_vcard($vcardStr);
 
 		$query = "
 			INSERT INTO
@@ -521,7 +537,7 @@ class carddav_addressbook extends rcube_addressbook
 			$carddav_content['etag'],
 			$carddav_content['last_modified'],
 			$carddav_content['vcard_id'],
-			$carddav_content['vcard'],
+			$vcardStr,
 			$database_column_contents['words'],
 			$database_column_contents['firstname'],
 			$database_column_contents['surname'],
@@ -551,7 +567,8 @@ class carddav_addressbook extends rcube_addressbook
 	private function carddav_addressbook_update($carddav_content)
 	{
 		$rcmail = rcmail::get_instance();
-		$vcard = new rcube_vcard($carddav_content['vcard']);
+		$vcardStr = $this->cleanup($carddav_content['vcard']);
+		$vcard = new rcube_vcard($vcardStr);
 
 		$database_column_contents = $this->get_database_column_contents($vcard->get_assoc());
 
@@ -579,7 +596,7 @@ class carddav_addressbook extends rcube_addressbook
 			$query,
 			$carddav_content['etag'],
 			$carddav_content['last_modified'],
-			$carddav_content['vcard'],
+			$vcardStr,
 			$database_column_contents['words'],
 			$database_column_contents['firstname'],
 			$database_column_contents['surname'],
