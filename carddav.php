@@ -30,7 +30,7 @@ class carddav extends rcube_plugin
 	 *
 	 * @constant string
 	 */
-	const VERSION = '0.5.1';
+	const VERSION = '0.5.3';
 
 	/**
 	 * Tasks where the CardDAV plugin is loaded
@@ -374,9 +374,9 @@ class carddav extends rcube_plugin
 	 */
 	public function carddav_server_check_connection()
 	{
-		$url		= parse_input_value(base64_decode($_POST['_server_url']));
-		$username	= parse_input_value(base64_decode($_POST['_username']));
-		$password	= parse_input_value(base64_decode($_POST['_password']));
+		$url		= rcube_utils::parse_input_value(base64_decode($_POST['_server_url']));
+		$username	= rcube_utils::parse_input_value(base64_decode($_POST['_username']));
+		$password	= rcube_utils::parse_input_value(base64_decode($_POST['_password']));
 
 		$carddav_backend = new carddav_backend($url);
 		$carddav_backend->set_auth($username, $password);
@@ -521,11 +521,11 @@ class carddav extends rcube_plugin
 		if ($this->carddav_server_check_connection())
 		{
 			$user_id	= $rcmail->user->data['user_id'];
-			$url		= parse_input_value(base64_decode($_POST['_server_url']));
-			$username	= parse_input_value(base64_decode($_POST['_username']));
-			$password	= parse_input_value(base64_decode($_POST['_password']));
-			$label		= parse_input_value(base64_decode($_POST['_label']));
-			$read_only	= (int) parse_input_value(base64_decode($_POST['_read_only']));
+			$url		= rcube_utils::parse_input_value(base64_decode($_POST['_server_url']));
+			$username	= rcube_utils::parse_input_value(base64_decode($_POST['_username']));
+			$password	= rcube_utils::parse_input_value(base64_decode($_POST['_password']));
+			$label		= rcube_utils::parse_input_value(base64_decode($_POST['_label']));
+			$read_only	= (int) rcube_utils::parse_input_value(base64_decode($_POST['_read_only']));
 
 			$query = "
 				INSERT INTO
@@ -572,7 +572,7 @@ class carddav extends rcube_plugin
 	{
 		$rcmail = rcmail::get_instance();
 		$user_id = $rcmail->user->data['user_id'];
-		$carddav_server_id = parse_input_value(base64_decode($_POST['_carddav_server_id']));
+		$carddav_server_id = rcube_utils::parse_input_value(base64_decode($_POST['_carddav_server_id']));
 
 		$query = "
 			DELETE FROM
@@ -608,7 +608,7 @@ class carddav extends rcube_plugin
 	 * @param	string	$message	Error log message
 	 * @return	void
 	 */
-	public function write_log($message)
+	public static function write_log($message)
 	{
 		rcmail::write_log('CardDAV', 'v' . self::VERSION . ' | ' . $message);
 	}

@@ -1,3 +1,12 @@
+Changes from v0.5.2 to v0.5.3
+- At least for the Apple's Calendar Server the custom HTTP request PROPFIND in combination with
+  infinity depth is no longer allowed. Now, the depth is always specified as 1.
+- Fixed the calls to parse_input_value by the static function rcube_utils::parse_input_value.
+- Made write_log function of carddav static.
+
+Changes from v0.5.1 to v0.5.2
+- Replaced the deprecated rcmail function get_table_name.
+
 Changes from v0.5 to v0.5.1
 - Added PostgreSQL support (Thanks to B5r1oJ0A9G for the PostgreSQL statements!)
 

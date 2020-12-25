@@ -480,14 +480,16 @@ class carddav_backend
 			curl_setopt($this->curl, CURLOPT_POSTFIELDS, null);
 		}
 
+		$header = array();
+		if ($method == 'PROPFIND')
+		{
+			array_push($header, 'Depth: 1');
+		}
 		if ($content_type !== null)
 		{
-			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array('Content-type: '.$content_type));
+			array_push($header, 'Content-type: '.$content_type);
 		}
-		else
-		{
-			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array());
-		}
+		curl_setopt($this->curl, CURLOPT_HTTPHEADER, $header);
 
 		$response = curl_exec($this->curl);
 		$http_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
